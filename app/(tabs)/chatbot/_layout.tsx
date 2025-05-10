@@ -23,7 +23,7 @@ function RootLayoutNav() {
 
   return (
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="chatbot" />
+        <Stack.Screen name="index" />
       </Stack>
   );
 }

@@ -16,8 +16,12 @@ import { useRouter } from "expo-router";
 
 import { colors } from "@/constants/colors";
 
-// Sample forum posts
+// This screen shows a list of community posts where users can read and interact with discussions.
+// Users can search for posts, filter by categories, and create new posts.
+
+// Sample forum posts to display in the community feed.
 const FORUM_POSTS = [
+  // Each post includes details like the author's name, avatar, title, content, and tags.
   {
     id: "1",
     author: {
@@ -66,19 +70,26 @@ const FORUM_POSTS = [
 ];
 
 export default function CommunityScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
-  const router = useRouter();
+  // This is the main screen for the community section.
+  // Users can search for posts, filter by categories, and view a list of posts.
+
+  const [searchQuery, setSearchQuery] = useState(""); // Keeps track of the search input.
+  const [activeTab, setActiveTab] = useState("semua"); // Keeps track of the selected category.
+  const router = useRouter(); // Helps navigate between screens.
+
+  // This function displays each post in the list.
   const renderPost = ({ item }: { item: (typeof FORUM_POSTS)[number] }) => (
     <TouchableOpacity
       style={styles.postCard}
       onPress={() => {
+        // When a post is clicked, navigate to its details page.
         router.push({
           pathname: "/(tabs)/community/[id]",
           params: { id: item.id },
         });
       }}
     >
+      {/* Displays the author's information and post details. */}
       <View style={styles.postHeader}>
         <View style={styles.authorContainer}>
           <Image source={{ uri: item.author.avatar }} style={styles.avatar} />
@@ -94,6 +105,7 @@ export default function CommunityScreen() {
         {item.content}
       </Text>
 
+      {/* Displays tags related to the post. */}
       <View style={styles.tagsContainer}>
         {item.tags.map((tag, index) => (
           <View key={index} style={styles.tag}>
@@ -102,6 +114,7 @@ export default function CommunityScreen() {
         ))}
       </View>
 
+      {/* Displays actions like liking, commenting, and sharing. */}
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
           <Feather name="heart" size={18} color="#64748B" />
@@ -122,13 +135,16 @@ export default function CommunityScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Displays the header with the title and a filter button. */}
       <StatusBar style="auto" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Community</Text>
+        <Text style={styles.headerTitle}>Komunitas</Text>
         <TouchableOpacity style={styles.filterButton}>
           <Feather name="filter" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
+
+      {/* Search bar for finding posts. */}
       <View style={styles.searchContainer}>
         <Feather
           name="search"
@@ -138,26 +154,38 @@ export default function CommunityScreen() {
         />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search discussions..."
+          placeholder="Cari diskusi..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#94A3B8"
         />
       </View>
+
+      {/* Tabs for filtering posts by category. */}
       <View style={styles.tabsContainer}>
         <ScrollableTab
-          tabs={["All", "Mental Health", "Academic", "Wellness", "Social"]}
+          tabs={[
+            "Semua",
+            "Kesehatan Mental",
+            "Akademik",
+            "Kesejahteraan",
+            "Sosial",
+          ]}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
       </View>
+
+      {/* List of posts displayed in the community feed. */}
       <FlatList
         data={FORUM_POSTS}
         renderItem={renderPost}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.postsList}
         showsVerticalScrollIndicator={false}
-      />{" "}
+      />
+
+      {/* Button to create a new post. */}
       <TouchableOpacity
         style={styles.newPostButton}
         onPress={() => {

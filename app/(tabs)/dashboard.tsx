@@ -93,7 +93,7 @@ export default function HomeScreen() {
           <View style={styles.cardsContainer}>
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => router.push("/journal")}
+              onPress={() => router.push("/journal/")}
             >
               <View
                 style={[
