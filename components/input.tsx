@@ -15,8 +15,8 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 2,
     borderColor: colors.primaryBlue,
-    padding: 8,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 12,
     fontSize: 14,
     color: colors.primaryBlue,
     fontStyle: "italic",

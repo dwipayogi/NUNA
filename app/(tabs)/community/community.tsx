@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 import { colors } from "@/constants/colors";
 
@@ -66,12 +68,15 @@ const FORUM_POSTS = [
 export default function CommunityScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-
+  const router = useRouter();
   const renderPost = ({ item }: { item: (typeof FORUM_POSTS)[number] }) => (
     <TouchableOpacity
       style={styles.postCard}
       onPress={() => {
-        /* Navigate to post detail */
+        router.push({
+          pathname: "/(tabs)/community/[id]",
+          params: { id: item.id },
+        });
       }}
     >
       <View style={styles.postHeader}>
@@ -124,9 +129,13 @@ export default function CommunityScreen() {
           <Feather name="filter" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
-
       <View style={styles.searchContainer}>
-        <Feather name="search" size={20} color="#64748B" style={styles.searchIcon} />
+        <Feather
+          name="search"
+          size={20}
+          color="#64748B"
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search discussions..."
@@ -135,7 +144,6 @@ export default function CommunityScreen() {
           placeholderTextColor="#94A3B8"
         />
       </View>
-
       <View style={styles.tabsContainer}>
         <ScrollableTab
           tabs={["All", "Mental Health", "Academic", "Wellness", "Social"]}
@@ -143,19 +151,17 @@ export default function CommunityScreen() {
           onTabChange={setActiveTab}
         />
       </View>
-
       <FlatList
         data={FORUM_POSTS}
         renderItem={renderPost}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.postsList}
         showsVerticalScrollIndicator={false}
-      />
-
+      />{" "}
       <TouchableOpacity
         style={styles.newPostButton}
         onPress={() => {
-          /* Navigate to create post */
+          router.push("/(tabs)/community/create");
         }}
       >
         <Feather name="plus" size={24} color="#FFFFFF" />

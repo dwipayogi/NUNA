@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ImageBackground,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +14,6 @@ import { colors } from '@/constants/colors';
 
 import Feather from '@expo/vector-icons/Feather';
 
-const { width } = Dimensions.get('window');
 
 // Sample meditation sessions
 const MEDITATION_SESSIONS = [
@@ -227,7 +225,7 @@ export default function MeditateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.backgroundBlue,
   },
   header: {
     flexDirection: 'row',
@@ -273,7 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    width: width,
+    width: '100%',
     paddingHorizontal: 16,
   },
   grid: {

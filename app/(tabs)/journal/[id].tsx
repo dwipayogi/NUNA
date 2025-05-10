@@ -1,0 +1,457 @@
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { useLocalSearchParams, useRouter } from "expo-router";
+
+import Feather from "@expo/vector-icons/Feather";
+import { colors } from "@/constants/colors";
+import { Input } from "@/components/input";
+
+// Sample journal entries (same as in journal.tsx for demo purposes)
+const JOURNAL_ENTRIES = [
+  {
+    id: "1",
+    date: "2025-06-14",
+    title: "Persiapan ujian",
+    content:
+      "Saya merasa kewalahan dengan ujian akhir yang akan datang. Perlu membuat rencana belajar yang lebih baik.",
+    mood: "Stres",
+    color: "#FB923C",
+  },
+  {
+    id: "2",
+    date: "2025-06-13",
+    title: "Kemajuan proyek kelompok",
+    content:
+      "Rapat tim kami berjalan dengan baik hari ini. Kami akhirnya sepakat dengan arah proyek.",
+    mood: "Produktif",
+    color: "#4ADE80",
+  },
+  {
+    id: "3",
+    date: "2025-06-12",
+    title: "Meditasi pagi",
+    content:
+      "Memulai hari dengan sesi meditasi selama 10 menit. Merasa tenang dan fokus.",
+    mood: "Damai",
+    color: "#3B82F6",
+  },
+  {
+    id: "4",
+    date: "2025-06-11",
+    title: "Pikiran larut malam",
+    content: "Sulit tidur. Khawatir tentang persyaratan kelulusan.",
+    mood: "Cemas",
+    color: "#F87171",
+  },
+];
+
+export default function JournalDetailScreen() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+
+  const editModalAnim = useRef(new Animated.Value(0)).current;
+
+  // Find the entry with matching ID
+  const entry = JOURNAL_ENTRIES.find((item) => item.id === id);
+
+  const showModal = () => {
+    if (entry) {
+      setEditTitle(entry.title);
+      setEditContent(entry.content);
+      setSelectedMood(entry.mood);
+    }
+
+    setShowEditModal(true);
+    Animated.timing(editModalAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideModal = () => {
+    Animated.timing(editModalAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowEditModal(false);
+    });
+  };
+
+  if (!entry) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Catatan</Text>
+          <View style={styles.headerRight} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Catatan tidak ditemukan</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return new Date(dateString).toLocaleDateString("id-ID", options);
+  };
+
+  const handleSaveEdit = () => {
+    // Here you would update the journal entry in your database
+    // For demo purposes, we're just closing the modal
+    hideModal();
+    // You could also show a success message or navigate back
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="auto" />
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Detail Catatan</Text>
+        <TouchableOpacity style={styles.editButton} onPress={showModal}>
+          <Feather name="edit-2" size={20} color={colors.primaryBlue} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.contentContainer}
+        contentContainerStyle={styles.contentInner}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.dateContainer}>
+          <Text style={styles.date}>{formatDate(entry.date)}</Text>
+        </View>
+
+        <Text style={styles.title}>{entry.title}</Text>
+
+        <View style={[styles.moodTag, { backgroundColor: `${entry.color}20` }]}>
+          <Text style={[styles.moodText, { color: entry.color }]}>
+            {entry.mood}
+          </Text>
+        </View>
+
+        <View style={styles.contentBox}>
+          <Text style={styles.content}>{entry.content}</Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => {
+            // Handle delete functionality
+            router.back();
+          }}
+        >
+          <Feather name="trash-2" size={20} color="#EF4444" />
+          <Text style={styles.deleteText}>Hapus</Text>
+        </TouchableOpacity>
+      </View>
+
+      {showEditModal && (
+        <Animated.View
+          style={[
+            styles.editModalContainer,
+            {
+              opacity: editModalAnim,
+              transform: [
+                {
+                  translateY: editModalAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [300, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.editModal}>
+            <View style={styles.editModalHeader}>
+              <Text style={styles.editModalTitle}>Edit Catatan</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
+                <Feather name="x" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.editModalSubtitle}>Judul</Text>
+            <Input
+              placeholder="Judul catatan"
+              value={editTitle}
+              onChangeText={setEditTitle}
+            />
+            <Text style={styles.editModalSubtitle}>Isi</Text>
+            <Input
+              placeholder="Ceritakan hari Anda..."
+              multiline={true}
+              numberOfLines={4}
+              style={styles.textArea}
+              value={editContent}
+              onChangeText={setEditContent}
+            />
+            <Text style={styles.editModalSubtitle}>Mood</Text>
+            <View style={styles.moodSelector}>
+              {[
+                "Senang",
+                "Tenang",
+                "Produktif",
+                "Netral",
+                "Cemas",
+                "Stres",
+                "Sedih",
+              ].map((mood) => (
+                <TouchableOpacity
+                  key={mood}
+                  style={[
+                    styles.moodOption,
+                    selectedMood === mood && styles.selectedMoodOption,
+                  ]}
+                  onPress={() => setSelectedMood(mood)}
+                >
+                  <Text
+                    style={[
+                      styles.moodOptionText,
+                      selectedMood === mood && styles.selectedMoodOptionText,
+                    ]}
+                  >
+                    {mood}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSaveEdit}
+            >
+              <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.backgroundBlue,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.primaryBlue,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerRight: {
+    width: 40,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  contentInner: {
+    padding: 16,
+    paddingBottom: 80,
+  },
+  dateContainer: {
+    marginBottom: 8,
+  },
+  date: {
+    fontSize: 14,
+    color: colors.grayTwo,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.black,
+    marginBottom: 12,
+  },
+  moodTag: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  moodText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  contentBox: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  content: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.black,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F6",
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  deleteText: {
+    color: "#EF4444",
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.grayTwo,
+  },
+  editModalContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    height: "100%",
+    justifyContent: "flex-end",
+    zIndex: 1000,
+  },
+  editModal: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    maxHeight: "80%",
+  },
+  editModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  editModalTitle: {
+    fontSize: 18,
+    color: "#1E293B",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editModalSubtitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: colors.primaryBlue,
+    marginBottom: 8,
+  },
+  textArea: {
+    height: 120,
+    textAlignVertical: "top",
+    marginBottom: 16,
+  },
+  moodSelector: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginVertical: 12,
+  },
+  moodOption: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    margin: 4,
+  },
+  moodOptionText: {
+    fontSize: 14,
+    color: "#475569",
+  },
+  selectedMoodOption: {
+    backgroundColor: colors.primaryBlue,
+  },
+  selectedMoodOptionText: {
+    color: colors.white,
+  },
+  submitButton: {
+    backgroundColor: colors.primaryBlue,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  submitButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

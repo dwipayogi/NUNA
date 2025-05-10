@@ -14,9 +14,6 @@ import Feather from "@expo/vector-icons/Feather";
 
 import { colors } from "@/constants/colors";
 
-const { width } = Dimensions.get("window");
-const cardWidth = width * 0.44;
-
 export default function HomeScreen() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("Selamat Pagi!");
@@ -117,7 +114,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.actionCard}
-              // onPress={() => router.push('/meditate')}
+              onPress={() => router.push('/meditate')}
             >
               <View
                 style={[
@@ -283,7 +280,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   actionCard: {
-    width: cardWidth,
+    width: "48%",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,

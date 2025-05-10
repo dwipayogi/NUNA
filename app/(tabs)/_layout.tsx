@@ -45,7 +45,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="meditation"
+        name="meditate"
         options={{
           title: "Meditation",
           tabBarIcon: ({ color }) => (
@@ -53,6 +53,16 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="chatbot"
+        options={{
+          title: "ChatBot",
+          tabBarIcon: ({ color }) => (
+            <Feather name="message-square" size={24} color={color} />
+          ),
+        }}
+      />
     </Tabs>
+
   );
 }

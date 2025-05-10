@@ -21,9 +21,9 @@ export const Button = ({
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primaryBlue,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
   },
   text: {
