@@ -43,7 +43,7 @@ export default function HomeScreen() {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.profileButton}
-              // onPress={() => router.push('/profile')}
+              onPress={() => router.push('/profile')}
             >
               <Feather name="user" size={20} color="#1F2937" />
             </TouchableOpacity>
@@ -82,7 +82,7 @@ export default function HomeScreen() {
         <View style={styles.tipContainer}>
           <View style={styles.tipHeader}>
             <Feather name="info" size={24} color={colors.primaryYellow} />
-            <Text style={styles.tipTitle}>Tips for Today</Text>
+            <Text style={styles.tipTitle}>Tips hari ini</Text>
           </View>
             <Text style={styles.tipDescription}>
             "Luangkan waktu sejenak untuk bernapas dan merenungkan harimu. Ingat, tidak apa-apa merasakan apa pun yang sedang kamu rasakan."

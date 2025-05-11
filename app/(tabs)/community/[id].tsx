@@ -300,7 +300,7 @@ export default function CommunityDetailScreen() {
         >
           <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Discussion</Text>
+        <Text style={styles.headerTitle}>Diskusi</Text>
         <TouchableOpacity style={styles.shareButton}>
           <Feather name="share-2" size={20} color={colors.primaryBlue} />
         </TouchableOpacity>
