@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -14,45 +16,13 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 import { colors } from "@/constants/colors";
 import { Input } from "@/components/input";
-
-// Sample journal entries (same as in journal.tsx for demo purposes)
-const JOURNAL_ENTRIES = [
-  {
-    id: "1",
-    date: "2025-06-14",
-    title: "Persiapan ujian",
-    content:
-      "Saya merasa kewalahan dengan ujian akhir yang akan datang. Perlu membuat rencana belajar yang lebih baik.",
-    mood: "Stres",
-    color: "#FB923C",
-  },
-  {
-    id: "2",
-    date: "2025-06-13",
-    title: "Kemajuan proyek kelompok",
-    content:
-      "Rapat tim kami berjalan dengan baik hari ini. Kami akhirnya sepakat dengan arah proyek.",
-    mood: "Produktif",
-    color: "#4ADE80",
-  },
-  {
-    id: "3",
-    date: "2025-06-12",
-    title: "Meditasi pagi",
-    content:
-      "Memulai hari dengan sesi meditasi selama 10 menit. Merasa tenang dan fokus.",
-    mood: "Damai",
-    color: "#3B82F6",
-  },
-  {
-    id: "4",
-    date: "2025-06-11",
-    title: "Pikiran larut malam",
-    content: "Sulit tidur. Khawatir tentang persyaratan kelulusan.",
-    mood: "Cemas",
-    color: "#F87171",
-  },
-];
+import {
+  getJournalById,
+  updateJournal,
+  deleteJournal,
+  getMoodColor,
+  Journal,
+} from "@/services/journalService";
 
 export default function JournalDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -61,19 +31,41 @@ export default function JournalDetailScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [journal, setJournal] = useState<Journal | null>(null);
+  const [error, setError] = useState("");
 
   const editModalAnim = useRef(new Animated.Value(0)).current;
 
-  // Find the entry with matching ID
-  const entry = JOURNAL_ENTRIES.find((item) => item.id === id);
+  // Fetch journal details when component mounts
+  useEffect(() => {
+    fetchJournalDetails();
+  }, [id]);
 
-  const showModal = () => {
-    if (entry) {
-      setEditTitle(entry.title);
-      setEditContent(entry.content);
-      setSelectedMood(entry.mood);
+  const fetchJournalDetails = async () => {
+    if (!id) {
+      setError("Journal ID is missing");
+      setLoading(false);
+      return;
     }
 
+    try {
+      setLoading(true);
+      const data = await getJournalById(id as string);
+      setJournal(data);
+
+      // Pre-populate edit form
+      setEditTitle(data.title);
+      setEditContent(data.content);
+      setSelectedMood(data.mood);
+    } catch (err: any) {
+      setError(err.message || "Failed to load journal details");
+      Alert.alert("Error", "Failed to load journal details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const showModal = () => {
     setShowEditModal(true);
     Animated.timing(editModalAnim, {
       toValue: 1,
@@ -92,7 +84,87 @@ export default function JournalDetailScreen() {
     });
   };
 
-  if (!entry) {
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return new Date(dateString).toLocaleDateString("id-ID", options);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim() || !editContent.trim() || !selectedMood) {
+      Alert.alert("Error", "Harap isi semua kolom (judul, isi, dan mood)");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const updatedJournal = await updateJournal(id as string, {
+        title: editTitle,
+        content: editContent,
+        mood: selectedMood,
+      });
+
+      setJournal(updatedJournal);
+      hideModal();
+      Alert.alert("Sukses", "Catatan berhasil diperbarui");
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Gagal memperbarui catatan");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    Alert.alert(
+      "Konfirmasi",
+      "Apakah Anda yakin ingin menghapus catatan ini?",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await deleteJournal(id as string);
+              Alert.alert("Sukses", "Catatan berhasil dihapus");
+              router.back();
+            } catch (err: any) {
+              Alert.alert("Error", err.message || "Gagal menghapus catatan");
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Catatan</Text>
+          <View style={styles.headerRight} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!journal || error) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="auto" />
@@ -112,23 +184,6 @@ export default function JournalDetailScreen() {
       </SafeAreaView>
     );
   }
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    };
-    return new Date(dateString).toLocaleDateString("id-ID", options);
-  };
-
-  const handleSaveEdit = () => {
-    // Here you would update the journal entry in your database
-    // For demo purposes, we're just closing the modal
-    hideModal();
-    // You could also show a success message or navigate back
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
@@ -151,30 +206,31 @@ export default function JournalDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.dateContainer}>
-          <Text style={styles.date}>{formatDate(entry.date)}</Text>
+          <Text style={styles.date}>{formatDate(journal.createdAt)}</Text>
         </View>
 
-        <Text style={styles.title}>{entry.title}</Text>
+        <Text style={styles.title}>{journal.title}</Text>
 
-        <View style={[styles.moodTag, { backgroundColor: `${entry.color}20` }]}>
-          <Text style={[styles.moodText, { color: entry.color }]}>
-            {entry.mood}
+        <View
+          style={[
+            styles.moodTag,
+            { backgroundColor: `${getMoodColor(journal.mood)}20` },
+          ]}
+        >
+          <Text
+            style={[styles.moodText, { color: getMoodColor(journal.mood) }]}
+          >
+            {journal.mood}
           </Text>
         </View>
 
         <View style={styles.contentBox}>
-          <Text style={styles.content}>{entry.content}</Text>
+          <Text style={styles.content}>{journal.content}</Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => {
-            // Handle delete functionality
-            router.back();
-          }}
-        >
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
           <Feather name="trash-2" size={20} color="#EF4444" />
           <Text style={styles.deleteText}>Hapus</Text>
         </TouchableOpacity>
@@ -248,7 +304,7 @@ export default function JournalDetailScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </View>{" "}
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSaveEdit}
@@ -373,6 +429,11 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: colors.grayTwo,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   editModalContainer: {
     position: "absolute",

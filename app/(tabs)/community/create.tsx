@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -15,6 +16,7 @@ import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { colors } from "@/constants/colors";
+import { createPost } from "@/services/communityService";
 
 export default function CreatePostScreen() {
   const router = useRouter();
@@ -49,21 +51,33 @@ export default function CreatePostScreen() {
       }
     }
   };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (title.trim() === "" || content.trim() === "") {
-      // Show error
+      Alert.alert("Error", "Judul dan konten harus diisi");
+      return;
+    }
+
+    if (selectedTags.length === 0) {
+      Alert.alert("Error", "Pilih minimal satu tag untuk postingan");
       return;
     }
 
     setIsSubmitting(true);
 
-    // In a real app, you would send this data to your backend
-    // For demo purposes, we'll just simulate a delay and go back
-    setTimeout(() => {
+    try {
+      await createPost({
+        title: title.trim(),
+        content: content.trim(),
+        tags: selectedTags,
+      });
+
+      Alert.alert("Sukses", "Postingan berhasil dibuat", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Gagal membuat postingan");
       setIsSubmitting(false);
-      router.back(); // Navigate back to the community feed after posting
-    }, 1000);
+    }
   };
 
   return (

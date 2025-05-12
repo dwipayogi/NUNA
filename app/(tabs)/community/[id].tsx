@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,228 +10,23 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { colors } from "@/constants/colors";
-
-// Sample forum posts with comments
-const FORUM_POSTS = [
-  {
-    id: "1",
-    author: {
-      name: "Jamie Chen",
-      avatar:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Tips mengelola stres ujian",
-    content:
-      "Saya merasa cemas menjelang ujian akhir. Berikut beberapa strategi yang membantu saya mengatasi stres menghadapi ujian:\n\n1. Buat jadwal belajar yang realistis dan seimbang\n2. Latihan pernapasan dalam saat merasa cemas\n3. Istirahat cukup dan jaga pola makan\n4. Diskusikan materi dengan teman untuk pemahaman lebih baik\n5. Gunakan teknik visualisasi positif\n\nSaya harap ini bisa membantu teman-teman yang juga sedang menghadapi ujian. Apakah ada yang punya strategi lain untuk mengatasi stres ujian?",
-    likes: 24,
-    comments: 8,
-    timeAgo: "2 jam",
-    tags: ["Stres", "Ujian", "Kesehatan Mental"],
-    commentsList: [
-      {
-        id: "c1",
-        author: {
-          name: "Alex Morgan",
-          avatar:
-            "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Terima kasih untuk tipsnya! Saya akan mencoba teknik pernapasan dalam.",
-        timeAgo: "1 jam",
-        likes: 3,
-        replies: [
-          {
-            id: "r1c1",
-            author: {
-              name: "Jamie Chen",
-              avatar:
-                "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-            },
-            content:
-              "Senang bisa membantu! Teknik pernapasan dalam memang sangat efektif untuk menenangkan pikiran.",
-            timeAgo: "45 menit",
-            likes: 2,
-          },
-        ],
-      },
-      {
-        id: "c2",
-        author: {
-          name: "Taylor Williams",
-          avatar:
-            "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Saya juga suka mendengarkan musik instrumen saat belajar, membantu fokus dan mengurangi stres.",
-        timeAgo: "45 menit",
-        likes: 5,
-        replies: [],
-      },
-      {
-        id: "c3",
-        author: {
-          name: "Jordan Lee",
-          avatar:
-            "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Olahraga ringan juga sangat membantu mengurangi tingkat stres. Coba lakukan jogging 15-20 menit di pagi hari!",
-        timeAgo: "30 menit",
-        likes: 7,
-        replies: [
-          {
-            id: "r1c3",
-            author: {
-              name: "Alex Morgan",
-              avatar:
-                "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-            },
-            content:
-              "Setuju! Olahraga pagi membantu menjernihkan pikiran untuk belajar seharian.",
-            timeAgo: "25 menit",
-            likes: 1,
-          },
-          {
-            id: "r2c3",
-            author: {
-              name: "Jamie Chen",
-              avatar:
-                "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-            },
-            content:
-              "Saya akan mencoba metode ini! Apakah ada rekomendasi latihan sederhana untuk dilakukan di dalam ruangan?",
-            timeAgo: "15 menit",
-            likes: 0,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2",
-    author: {
-      name: "Alex Morgan",
-      avatar:
-        "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Menemukan keseimbangan antara belajar dan kehidupan sosial",
-    content:
-      "Sulit untuk menjaga pertemanan sambil mengikuti tugas-tugas kuliah. Ada yang punya saran?",
-    likes: 18,
-    comments: 12,
-    timeAgo: "5 jam",
-    tags: ["Keseimbangan", "Sosial", "Manajemen Waktu"],
-    commentsList: [
-      {
-        id: "c1",
-        author: {
-          name: "Jamie Chen",
-          avatar:
-            "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Saya membuat jadwal khusus untuk aktivitas sosial, biasanya di akhir minggu sehingga tidak mengganggu jadwal belajar saya.",
-        timeAgo: "4 jam",
-        likes: 8,
-      },
-      {
-        id: "c2",
-        author: {
-          name: "Robin Smith",
-          avatar:
-            "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Ajak teman-teman untuk belajar bersama, jadi kamu bisa bersosialisasi sambil tetap produktif!",
-        timeAgo: "3 jam",
-        likes: 6,
-      },
-    ],
-  },
-  {
-    id: "3",
-    author: {
-      name: "Taylor Williams",
-      avatar:
-        "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Teknik meditasi untuk fokus lebih baik",
-    content:
-      "Saya telah mempraktikkan teknik meditasi ini dan benar-benar meningkatkan konsentrasi saya selama sesi belajar...",
-    likes: 32,
-    comments: 7,
-    timeAgo: "1 hari",
-    tags: ["Meditasi", "Fokus", "Kesejahteraan"],
-    commentsList: [
-      {
-        id: "c1",
-        author: {
-          name: "Jordan Lee",
-          avatar:
-            "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Bisakah kamu berbagi teknik meditasi spesifik yang kamu gunakan?",
-        timeAgo: "20 jam",
-        likes: 4,
-      },
-      {
-        id: "c2",
-        author: {
-          name: "Alex Morgan",
-          avatar:
-            "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content:
-          "Saya juga merasakan manfaat meditasi. Saya merekomendasikan aplikasi Headspace untuk pemula.",
-        timeAgo: "18 jam",
-        likes: 9,
-      },
-      {
-        id: "c3",
-        author: {
-          name: "Jamie Chen",
-          avatar:
-            "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-        },
-        content: "Berapa lama biasanya kamu bermeditasi setiap hari?",
-        timeAgo: "12 jam",
-        likes: 2,
-      },
-    ],
-  },
-];
-
-// Define types for our data
-type Reply = {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  content: string;
-  timeAgo: string;
-  likes: number;
-};
-
-type Comment = {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  content: string;
-  timeAgo: string;
-  likes: number;
-  replies?: Reply[];
-};
+import {
+  getPostById,
+  formatTimeAgo,
+  Post,
+  createComment,
+  getCurrentUser,
+} from "@/services/communityService";
 
 export default function CommunityDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -239,17 +34,103 @@ export default function CommunityDetailScreen() {
   const [commentText, setCommentText] = useState("");
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [user, setUser] = useState<any>(null);
+  const [submittingComment, setSubmittingComment] = useState(false);
 
-  // Find the post with matching ID
-  const post = FORUM_POSTS.find((item) => item.id === id);
+  // Default avatar for users without profile images
+  const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=";
 
-  React.useEffect(() => {
-    if (post) {
-      setLikeCount(post.likes);
+  // Fetch post details and current user when component mounts
+  useEffect(() => {
+    fetchPostDetails();
+    fetchCurrentUser();
+  }, [id]);
+
+  // Function to fetch post details
+  const fetchPostDetails = async () => {
+    if (!id) {
+      setError("Post ID is missing");
+      setLoading(false);
+      return;
     }
-  }, [post]);
 
-  if (!post) {
+    try {
+      setLoading(true);
+      const postData = await getPostById(id as string);
+      setPost(postData);
+      setLikeCount(0); // Reset like count, in a real app this would be from the API
+    } catch (err: any) {
+      setError(err.message || "Failed to load post details");
+      Alert.alert("Error", "Failed to load post details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to get current user
+  const fetchCurrentUser = async () => {
+    try {
+      const userData = await getCurrentUser();
+      setUser(userData);
+    } catch (err) {
+      console.error("Failed to get user data:", err);
+    }
+  };
+
+  const handleLike = () => {
+    if (liked) {
+      setLikeCount(likeCount - 1);
+    } else {
+      setLikeCount(likeCount + 1);
+    }
+    setLiked(!liked);
+  };
+
+  const handleComment = async () => {
+    if (commentText.trim().length === 0 || !user) return;
+
+    try {
+      setSubmittingComment(true);
+      await createComment({
+        content: commentText,
+        postId: id as string,
+      });
+      setCommentText("");
+
+      // Refresh post to show the new comment
+      fetchPostDetails();
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to post comment");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Diskusi</Text>
+          <View style={styles.headerRight} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!post || error) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="auto" />
@@ -264,31 +145,21 @@ export default function CommunityDetailScreen() {
           <View style={styles.headerRight} />
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Post tidak ditemukan</Text>
+          <Text style={styles.errorText}>
+            {error || "Post tidak ditemukan"}
+          </Text>
+          {error && (
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={fetchPostDetails}
+            >
+              <Text style={styles.retryButtonText}>Coba lagi</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     );
   }
-
-  const handleLike = () => {
-    if (liked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
-    }
-    setLiked(!liked);
-  };
-
-  const handleComment = () => {
-    if (commentText.trim().length === 0) return;
-
-    // In a real app, you would send this comment to a server
-    // For demo purposes, we'll just clear the input
-    setCommentText("");
-
-    // You could also add the new comment to the local state
-    // and show it immediately to the user
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -318,12 +189,16 @@ export default function CommunityDetailScreen() {
           <View style={styles.postCard}>
             <View style={styles.authorContainer}>
               <Image
-                source={{ uri: post.author.avatar }}
+                source={{
+                  uri: DEFAULT_AVATAR + (post.userId.charCodeAt(0) % 70),
+                }}
                 style={styles.avatar}
               />
               <View>
-                <Text style={styles.authorName}>{post.author.name}</Text>
-                <Text style={styles.postTime}>{post.timeAgo}</Text>
+                <Text style={styles.authorName}>{post.user.username}</Text>
+                <Text style={styles.postTime}>
+                  {formatTimeAgo(post.createdAt)}
+                </Text>
               </View>
             </View>
 
@@ -357,7 +232,7 @@ export default function CommunityDetailScreen() {
 
               <TouchableOpacity style={styles.actionButton}>
                 <Feather name="message-circle" size={18} color="#64748B" />
-                <Text style={styles.actionText}>{post.comments}</Text>
+                <Text style={styles.actionText}>{post.comments.length}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.actionButton}>
@@ -368,103 +243,64 @@ export default function CommunityDetailScreen() {
 
           <View style={styles.commentsSection}>
             <Text style={styles.commentsTitle}>
-              Komentar ({post.commentsList.length})
-            </Text>{" "}
-            {post.commentsList.map((comment: Comment) => (
-              <View key={comment.id}>
-                <View style={styles.commentCard}>
-                  <View style={styles.commentHeader}>
-                    <Image
-                      source={{ uri: comment.author.avatar }}
-                      style={styles.commentAvatar}
-                    />
-                    <View style={styles.commentHeaderText}>
-                      <Text style={styles.commentAuthor}>
-                        {comment.author.name}
-                      </Text>
-                      <Text style={styles.commentTime}>{comment.timeAgo}</Text>
+              Komentar ({post.comments.length})
+            </Text>
+            {post.comments.length === 0 ? (
+              <View style={styles.emptyCommentsContainer}>
+                <Text style={styles.emptyCommentsText}>
+                  Belum ada komentar. Jadilah yang pertama berkomentar!
+                </Text>
+              </View>
+            ) : (
+              post.comments.map((comment) => (
+                <View key={comment.id}>
+                  <View style={styles.commentCard}>
+                    <View style={styles.commentHeader}>
+                      <Image
+                        source={{
+                          uri:
+                            DEFAULT_AVATAR +
+                            (comment.userId.charCodeAt(0) % 70),
+                        }}
+                        style={styles.commentAvatar}
+                      />
+                      <View style={styles.commentHeaderText}>
+                        <Text style={styles.commentAuthor}>
+                          {comment.user.username}
+                        </Text>
+                        <Text style={styles.commentTime}>
+                          {formatTimeAgo(comment.createdAt)}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.commentContent}>{comment.content}</Text>
+                    <View style={styles.commentActions}>
+                      <TouchableOpacity style={styles.commentAction}>
+                        <Feather name="heart" size={14} color="#64748B" />
+                        <Text style={styles.commentActionText}>0</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.commentAction}>
+                        <Feather
+                          name="message-square"
+                          size={14}
+                          color="#64748B"
+                        />
+                        <Text style={styles.commentActionText}>Reply</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
-                  <Text style={styles.commentContent}>{comment.content}</Text>
-                  <View style={styles.commentActions}>
-                    <TouchableOpacity style={styles.commentAction}>
-                      <Feather name="heart" size={14} color="#64748B" />
-                      <Text style={styles.commentActionText}>
-                        {comment.likes}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.commentAction}>
-                      <Feather
-                        name="message-square"
-                        size={14}
-                        color="#64748B"
-                      />
-                      <Text style={styles.commentActionText}>Reply</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>{" "}
-                {comment.replies && comment.replies.length > 0 && (
-                  <View style={styles.repliesContainer}>
-                    <View
-                      style={{
-                        position: "absolute",
-                        left: 16,
-                        top: 0,
-                        bottom: 16,
-                        width: 1,
-                        backgroundColor: "#E2E8F0",
-                      }}
-                    />
-                    {comment.replies.map((reply: Reply, index: number) => (
-                      <View key={reply.id} style={styles.replyCard}>
-                        <View
-                          style={{
-                            position: "absolute",
-                            left: -16,
-                            top: 16,
-                            width: 16,
-                            height: 1,
-                            backgroundColor: "#E2E8F0",
-                          }}
-                        />
-                        <View style={styles.commentHeader}>
-                          <Image
-                            source={{ uri: reply.author.avatar }}
-                            style={styles.commentAvatar}
-                          />
-                          <View style={styles.commentHeaderText}>
-                            <Text style={styles.commentAuthor}>
-                              {reply.author.name}
-                            </Text>
-                            <Text style={styles.commentTime}>
-                              {reply.timeAgo}
-                            </Text>
-                          </View>
-                        </View>
-                        <Text style={styles.commentContent}>
-                          {reply.content}
-                        </Text>
-                        <View style={styles.commentActions}>
-                          <TouchableOpacity style={styles.commentAction}>
-                            <Feather name="heart" size={14} color="#64748B" />
-                            <Text style={styles.commentActionText}>
-                              {reply.likes}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
+                </View>
+              ))
+            )}
           </View>
         </ScrollView>
 
         <View style={styles.commentInputContainer}>
           <Image
             source={{
-              uri: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100",
+              uri: user
+                ? DEFAULT_AVATAR + (user.id.charCodeAt(0) % 70)
+                : DEFAULT_AVATAR + "1",
             }}
             style={styles.currentUserAvatar}
           />
@@ -478,18 +314,24 @@ export default function CommunityDetailScreen() {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              commentText.trim().length === 0
+              commentText.trim().length === 0 || submittingComment
                 ? styles.sendButtonDisabled
                 : null,
             ]}
             onPress={handleComment}
-            disabled={commentText.trim().length === 0}
+            disabled={commentText.trim().length === 0 || submittingComment}
           >
-            <Feather
-              name="send"
-              size={18}
-              color={commentText.trim().length === 0 ? "#94A3B8" : colors.white}
-            />
+            {submittingComment ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <Feather
+                name="send"
+                size={18}
+                color={
+                  commentText.trim().length === 0 ? "#94A3B8" : colors.white
+                }
+              />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -616,7 +458,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   commentsSection: {
-    marginBottom: 25, // Add space at the bottom for the comment input
+    marginBottom: 80, // Add more space at the bottom for the comment input
   },
   commentsTitle: {
     fontSize: 16,
@@ -721,30 +563,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.grayTwo,
   },
-  repliesContainer: {
-    paddingLeft: 24,
-    marginTop: -8,
-    position: "relative",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  replyCard: {
+  retryButton: {
+    backgroundColor: colors.primaryBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  emptyCommentsContainer: {
     backgroundColor: colors.white,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    marginLeft: 8,
-    borderLeftWidth: 1,
-    borderLeftColor: "#E2E8F0",
-    position: "relative",
+    padding: 16,
+    alignItems: "center",
   },
-  replyConnectingLine: {
-    position: "absolute",
-    left: 12,
-    top: -4,
-    width: 16,
-    height: 24,
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#E2E8F0",
-    borderBottomLeftRadius: 8,
+  emptyCommentsText: {
+    fontSize: 14,
+    color: colors.grayTwo,
+    textAlign: "center",
   },
 });

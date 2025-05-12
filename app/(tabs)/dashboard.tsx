@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Feather from "@expo/vector-icons/Feather";
 
@@ -17,6 +18,7 @@ import { colors } from "@/constants/colors";
 export default function HomeScreen() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("Selamat Pagi!");
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     const getGreeting = () => {
@@ -27,6 +29,21 @@ export default function HomeScreen() {
     };
 
     setGreeting(getGreeting());
+
+    // Fetch username from AsyncStorage
+    const getUserData = async () => {
+      try {
+        const userDataString = await AsyncStorage.getItem("user");
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          setUsername(userData.username || "");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    getUserData();
   }, []);
 
   return (
@@ -38,12 +55,12 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{greeting}</Text>
-            <Text style={styles.name}>Alex</Text>
+            <Text style={styles.name}>{username || "User"}</Text>
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.profileButton}
-              onPress={() => router.push('/profile')}
+              onPress={() => router.push("/profile")}
             >
               <Feather name="user" size={20} color="#1F2937" />
             </TouchableOpacity>
@@ -84,9 +101,10 @@ export default function HomeScreen() {
             <Feather name="info" size={24} color={colors.primaryYellow} />
             <Text style={styles.tipTitle}>Tips hari ini</Text>
           </View>
-            <Text style={styles.tipDescription}>
-            "Luangkan waktu sejenak untuk bernapas dan merenungkan harimu. Ingat, tidak apa-apa merasakan apa pun yang sedang kamu rasakan."
-            </Text>
+          <Text style={styles.tipDescription}>
+            "Luangkan waktu sejenak untuk bernapas dan merenungkan harimu.
+            Ingat, tidak apa-apa merasakan apa pun yang sedang kamu rasakan."
+          </Text>
         </View>
 
         <View style={styles.quickActionsContainer}>
@@ -114,7 +132,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => router.push('/meditate')}
+              onPress={() => router.push("/meditate")}
             >
               <View
                 style={[

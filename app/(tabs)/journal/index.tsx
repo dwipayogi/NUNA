@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Animated,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -17,52 +19,44 @@ import Feather from "@expo/vector-icons/Feather";
 import { Input } from "@/components/input";
 
 import { colors } from "@/constants/colors";
-
-// Sample journal entries
-const JOURNAL_ENTRIES = [
-  {
-    id: "1",
-    date: "2025-06-14",
-    title: "Persiapan ujian",
-    content:
-      "Saya merasa kewalahan dengan ujian akhir yang akan datang. Perlu membuat rencana belajar yang lebih baik.",
-    mood: "Stres",
-    color: "#FB923C",
-  },
-  {
-    id: "2",
-    date: "2025-06-13",
-    title: "Kemajuan proyek kelompok",
-    content:
-      "Rapat tim kami berjalan dengan baik hari ini. Kami akhirnya sepakat dengan arah proyek.",
-    mood: "Produktif",
-    color: "#4ADE80",
-  },
-  {
-    id: "3",
-    date: "2025-06-12",
-    title: "Meditasi pagi",
-    content:
-      "Memulai hari dengan sesi meditasi selama 10 menit. Merasa tenang dan fokus.",
-    mood: "Damai",
-    color: "#3B82F6",
-  },
-  {
-    id: "4",
-    date: "2025-06-11",
-    title: "Pikiran larut malam",
-    content: "Sulit tidur. Khawatir tentang persyaratan kelulusan.",
-    mood: "Cemas",
-    color: "#F87171",
-  },
-];
+import {
+  getAllJournals,
+  createJournal,
+  Journal,
+  getMoodColor,
+} from "@/services/journalService";
 
 export default function JournalScreen() {
   const [activeTab, setActiveTab] = useState("catatan");
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [journals, setJournals] = useState<Journal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [error, setError] = useState("");
 
   const promptModalAnim = useRef(new Animated.Value(0)).current;
+
+  // Fetch journals when component mounts
+  useEffect(() => {
+    fetchJournals();
+  }, []);
+
+  // Function to fetch journals from API
+  const fetchJournals = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await getAllJournals();
+      setJournals(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load journals");
+      Alert.alert("Error", "Failed to load journals. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const showModal = () => {
     setShowPromptModal(true);
@@ -92,38 +86,36 @@ export default function JournalScreen() {
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
   const router = useRouter();
-
-  const renderJournalEntry = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.entryCard}
-      onPress={() => {
-        router.push({
-          pathname: `/(tabs)/journal/[id]`,
-          params: { id: item.id },
-        });
-      }}
-    >
-      <View
-        style={[styles.entryMoodIndicator, { backgroundColor: item.color }]}
-      />
-      <View style={styles.entryContent}>
-        <Text style={styles.entryDate}>{formatDate(item.date)}</Text>
-        <Text style={styles.entryTitle}>{item.title}</Text>
-        <Text style={styles.entryPreview} numberOfLines={2}>
-          {item.content}
-        </Text>
-        <View style={styles.entryFooter}>
-          <View
-            style={[styles.moodTag, { backgroundColor: `${item.color}20` }]}
-          >
-            <Text style={[styles.moodText, { color: item.color }]}>
-              {item.mood}
-            </Text>
+  const renderJournalEntry = ({ item }: { item: Journal }) => {
+    const color = getMoodColor(item.mood);
+    return (
+      <TouchableOpacity
+        style={styles.entryCard}
+        onPress={() => {
+          router.push({
+            pathname: `/(tabs)/journal/[id]`,
+            params: { id: item.id },
+          });
+        }}
+      >
+        <View style={[styles.entryMoodIndicator, { backgroundColor: color }]} />
+        <View style={styles.entryContent}>
+          <Text style={styles.entryDate}>{formatDate(item.createdAt)}</Text>
+          <Text style={styles.entryTitle}>{item.title}</Text>
+          <Text style={styles.entryPreview} numberOfLines={2}>
+            {item.content}
+          </Text>
+          <View style={styles.entryFooter}>
+            <View style={[styles.moodTag, { backgroundColor: `${color}20` }]}>
+              <Text style={[styles.moodText, { color: color }]}>
+                {item.mood}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -131,7 +123,6 @@ export default function JournalScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Catatan Harian</Text>
       </View>
-
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "catatan" && styles.activeTab]}
@@ -159,16 +150,29 @@ export default function JournalScreen() {
             Analisis
           </Text>
         </TouchableOpacity>
-      </View>
-
+      </View>{" "}
       {activeTab === "catatan" ? (
-        <FlatList
-          data={JOURNAL_ENTRIES}
-          renderItem={renderJournalEntry}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.entriesList}
-          showsVerticalScrollIndicator={false}
-        />
+        loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primaryBlue} />
+          </View>
+        ) : journals.length > 0 ? (
+          <FlatList
+            data={journals}
+            renderItem={renderJournalEntry}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.entriesList}
+            showsVerticalScrollIndicator={false}
+            refreshing={loading}
+            onRefresh={fetchJournals}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Belum ada catatan. Tambahkan catatan baru!
+            </Text>
+          </View>
+        )
       ) : (
         <ScrollView
           style={styles.statsContainer}
@@ -241,11 +245,9 @@ export default function JournalScreen() {
           </View>
         </ScrollView>
       )}
-
       <TouchableOpacity style={styles.newEntryButton} onPress={showModal}>
         <Feather name="plus" size={24} color="#FFFFFF" />
       </TouchableOpacity>
-
       {showPromptModal && (
         <Animated.View
           style={[
@@ -269,15 +271,21 @@ export default function JournalScreen() {
               <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
                 <Feather name="x" size={20} color="#64748B" />
               </TouchableOpacity>
-            </View>
+            </View>{" "}
             <Text style={styles.promptModalSubtitle}>Judul</Text>
-            <Input placeholder="Tulis catatan baru..." />
+            <Input
+              placeholder="Tulis catatan baru..."
+              value={title}
+              onChangeText={setTitle}
+            />
             <Text style={styles.promptModalSubtitle}>Isi</Text>
             <Input
               placeholder="Ceritakan hari Anda..."
               multiline={true}
               numberOfLines={4}
               style={styles.textArea}
+              value={content}
+              onChangeText={setContent}
             />
             <Text style={styles.promptModalSubtitle}>Mood</Text>{" "}
             <View style={styles.moodSelector}>
@@ -308,8 +316,45 @@ export default function JournalScreen() {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View>
-            <TouchableOpacity style={styles.submitButton}>
+            </View>{" "}
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={async () => {
+                if (!title.trim() || !content.trim() || !selectedMood) {
+                  Alert.alert(
+                    "Error",
+                    "Harap isi semua kolom (judul, isi, dan mood)"
+                  );
+                  return;
+                }
+
+                try {
+                  setLoading(true);
+                  await createJournal({
+                    title,
+                    content,
+                    mood: selectedMood,
+                  });
+
+                  // Reset form and hide modal
+                  setTitle("");
+                  setContent("");
+                  setSelectedMood(null);
+                  hideModal();
+
+                  // Refresh journals list
+                  fetchJournals();
+                  Alert.alert("Sukses", "Catatan berhasil disimpan");
+                } catch (err: any) {
+                  Alert.alert(
+                    "Error",
+                    err.message || "Gagal menyimpan catatan"
+                  );
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
               <Text style={styles.submitButtonText}>Simpan</Text>
             </TouchableOpacity>
           </View>
@@ -595,5 +640,21 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.grayTwo,
+    textAlign: "center",
   },
 });

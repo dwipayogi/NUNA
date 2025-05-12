@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Image,
   TextInput,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -15,59 +17,13 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { colors } from "@/constants/colors";
+import { getAllPosts, formatTimeAgo, Post } from "@/services/communityService";
 
 // This screen shows a list of community posts where users can read and interact with discussions.
 // Users can search for posts, filter by categories, and create new posts.
 
-// Sample forum posts to display in the community feed.
-const FORUM_POSTS = [
-  // Each post includes details like the author's name, avatar, title, content, and tags.
-  {
-    id: "1",
-    author: {
-      name: "Jamie Chen",
-      avatar:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Tips mengelola stres ujian",
-    content:
-      "Saya merasa cemas menjelang ujian akhir. Berikut beberapa strategi yang membantu saya...",
-    likes: 24,
-    comments: 8,
-    timeAgo: "2 jam",
-    tags: ["Stres", "Ujian", "Kesehatan Mental"],
-  },
-  {
-    id: "2",
-    author: {
-      name: "Alex Morgan",
-      avatar:
-        "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Menemukan keseimbangan antara belajar dan kehidupan sosial",
-    content:
-      "Sulit untuk menjaga pertemanan sambil mengikuti tugas-tugas kuliah. Ada yang punya saran?",
-    likes: 18,
-    comments: 12,
-    timeAgo: "5 jam",
-    tags: ["Keseimbangan", "Sosial", "Manajemen Waktu"],
-  },
-  {
-    id: "3",
-    author: {
-      name: "Taylor Williams",
-      avatar:
-        "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=100",
-    },
-    title: "Teknik meditasi untuk fokus lebih baik",
-    content:
-      "Saya telah mempraktikkan teknik meditasi ini dan benar-benar meningkatkan konsentrasi saya selama sesi belajar...",
-    likes: 32,
-    comments: 7,
-    timeAgo: "1 hari",
-    tags: ["Meditasi", "Fokus", "Kesejahteraan"],
-  },
-];
+// Default avatar for users without profile images
+const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=";
 
 export default function CommunityScreen() {
   // This is the main screen for the community section.
@@ -75,10 +31,33 @@ export default function CommunityScreen() {
 
   const [searchQuery, setSearchQuery] = useState(""); // Keeps track of the search input.
   const [activeTab, setActiveTab] = useState("semua"); // Keeps track of the selected category.
+  const [posts, setPosts] = useState<Post[]>([]); // Store the posts from the API
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter(); // Helps navigate between screens.
 
+  // Fetch posts when component mounts
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  // Function to fetch posts from API
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await getAllPosts();
+      setPosts(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load posts");
+      Alert.alert("Error", "Failed to load community posts. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // This function displays each post in the list.
-  const renderPost = ({ item }: { item: (typeof FORUM_POSTS)[number] }) => (
+  const renderPost = ({ item }: { item: Post }) => (
     <TouchableOpacity
       style={styles.postCard}
       onPress={() => {
@@ -92,10 +71,17 @@ export default function CommunityScreen() {
       {/* Displays the author's information and post details. */}
       <View style={styles.postHeader}>
         <View style={styles.authorContainer}>
-          <Image source={{ uri: item.author.avatar }} style={styles.avatar} />
+          <Image
+            source={{
+              uri: DEFAULT_AVATAR + (item.userId?.charCodeAt(0) % 70 || "1"),
+            }}
+            style={styles.avatar}
+          />
           <View>
-            <Text style={styles.authorName}>{item.author.name}</Text>
-            <Text style={styles.postTime}>{item.timeAgo}</Text>
+            <Text style={styles.authorName}>
+              {item.user?.username || "Anonymous"}
+            </Text>
+            <Text style={styles.postTime}>{formatTimeAgo(item.createdAt)}</Text>
           </View>
         </View>
       </View>
@@ -107,23 +93,24 @@ export default function CommunityScreen() {
 
       {/* Displays tags related to the post. */}
       <View style={styles.tagsContainer}>
-        {item.tags.map((tag, index) => (
-          <View key={index} style={styles.tag}>
-            <Text style={styles.tagText}>{tag}</Text>
-          </View>
-        ))}
+        {item.tags &&
+          item.tags.map((tag, index) => (
+            <View key={index} style={styles.tag}>
+              <Text style={styles.tagText}>{tag}</Text>
+            </View>
+          ))}
       </View>
 
       {/* Displays actions like liking, commenting, and sharing. */}
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
           <Feather name="heart" size={18} color="#64748B" />
-          <Text style={styles.actionText}>{item.likes}</Text>
+          <Text style={styles.actionText}>0</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton}>
           <Feather name="message-circle" size={18} color="#64748B" />
-          <Text style={styles.actionText}>{item.comments}</Text>
+          <Text style={styles.actionText}>{item.comments?.length || 0}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton}>
@@ -132,6 +119,32 @@ export default function CommunityScreen() {
       </View>
     </TouchableOpacity>
   );
+
+  // Function to filter posts based on search and category
+  const getFilteredPosts = () => {
+    if (!posts) return [];
+
+    let filtered = [...posts];
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          post.content.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by category/tag
+    if (activeTab !== "semua") {
+      filtered = filtered.filter(
+        (post) =>
+          post.tags && post.tags.some((tag) => tag.toLowerCase() === activeTab)
+      );
+    }
+
+    return filtered;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -177,13 +190,36 @@ export default function CommunityScreen() {
       </View>
 
       {/* List of posts displayed in the community feed. */}
-      <FlatList
-        data={FORUM_POSTS}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.postsList}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
+            <Text style={styles.retryButtonText}>Coba lagi</Text>
+          </TouchableOpacity>
+        </View>
+      ) : getFilteredPosts().length > 0 ? (
+        <FlatList
+          data={getFilteredPosts()}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.postsList}
+          showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={fetchPosts}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {searchQuery || activeTab !== "semua"
+              ? "Tidak ada post yang cocok dengan filter"
+              : "Belum ada post di komunitas"}
+          </Text>
+        </View>
+      )}
 
       {/* Button to create a new post. */}
       <TouchableOpacity
@@ -397,5 +433,44 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.grayTwo,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: colors.primaryBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.grayTwo,
+    textAlign: "center",
   },
 });
