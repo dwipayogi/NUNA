@@ -26,6 +26,8 @@ import {
   Post,
   createComment,
   getCurrentUser,
+  likePost,
+  unlikePost,
 } from "@/services/communityService";
 
 export default function CommunityDetailScreen() {
@@ -40,16 +42,11 @@ export default function CommunityDetailScreen() {
   const [user, setUser] = useState<any>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
 
-  // Default avatar for users without profile images
-  const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=";
-
   // Fetch post details and current user when component mounts
   useEffect(() => {
     fetchPostDetails();
     fetchCurrentUser();
-  }, [id]);
-
-  // Function to fetch post details
+  }, [id]); // Function to fetch post details
   const fetchPostDetails = async () => {
     if (!id) {
       setError("Post ID is missing");
@@ -61,10 +58,10 @@ export default function CommunityDetailScreen() {
       setLoading(true);
       const postData = await getPostById(id as string);
       setPost(postData);
-      setLikeCount(0); // Reset like count, in a real app this would be from the API
+      setLikeCount(postData.likes || 0); // Set like count from API
+      setLiked(postData.likedByMe || false); // Set liked state from API
     } catch (err: any) {
       setError(err.message || "Failed to load post details");
-      Alert.alert("Error", "Failed to load post details. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,16 +76,23 @@ export default function CommunityDetailScreen() {
       console.error("Failed to get user data:", err);
     }
   };
-
-  const handleLike = () => {
-    if (liked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        // Unlike the post
+        const result = await unlikePost(id as string);
+        setLikeCount(result.likes);
+        setLiked(false);
+      } else {
+        // Like the post
+        const result = await likePost(id as string);
+        setLikeCount(result.likes);
+        setLiked(true);
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
     }
-    setLiked(!liked);
   };
-
   const handleComment = async () => {
     if (commentText.trim().length === 0 || !user) return;
 
@@ -103,7 +107,7 @@ export default function CommunityDetailScreen() {
       // Refresh post to show the new comment
       fetchPostDetails();
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to post comment");
+      console.error("Error posting comment:", err);
     } finally {
       setSubmittingComment(false);
     }
@@ -186,33 +190,32 @@ export default function CommunityDetailScreen() {
           contentContainerStyle={styles.contentInner}
           showsVerticalScrollIndicator={false}
         >
+          {" "}
           <View style={styles.postCard}>
             <View style={styles.authorContainer}>
-              <Image
-                source={{
-                  uri: DEFAULT_AVATAR + (post.userId.charCodeAt(0) % 70),
-                }}
-                style={styles.avatar}
-              />
+              <View style={styles.avatarContainer}>
+                <Text style={styles.avatarText}>
+                  {(post.user?.username || "A").charAt(0).toUpperCase()}
+                </Text>
+              </View>
               <View>
-                <Text style={styles.authorName}>{post.user.username}</Text>
+                <Text style={styles.authorName}>
+                  {post.user?.username || "Anonymous"}
+                </Text>
                 <Text style={styles.postTime}>
                   {formatTimeAgo(post.createdAt)}
                 </Text>
               </View>
             </View>
-
             <Text style={styles.postTitle}>{post.title}</Text>
-            <Text style={styles.postContent}>{post.content}</Text>
-
+            <Text style={styles.postContent}>{post.content}</Text>{" "}
             <View style={styles.tagsContainer}>
-              {post.tags.map((tag, index) => (
+              {post.tags?.map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
               ))}
             </View>
-
             <View style={styles.postActions}>
               <TouchableOpacity
                 style={styles.actionButton}
@@ -228,24 +231,23 @@ export default function CommunityDetailScreen() {
                 >
                   {likeCount}
                 </Text>
-              </TouchableOpacity>
-
+              </TouchableOpacity>{" "}
               <TouchableOpacity style={styles.actionButton}>
                 <Feather name="message-circle" size={18} color="#64748B" />
-                <Text style={styles.actionText}>{post.comments.length}</Text>
+                <Text style={styles.actionText}>
+                  {post.comments?.length || 0}
+                </Text>
               </TouchableOpacity>
-
               <TouchableOpacity style={styles.actionButton}>
                 <Feather name="bookmark" size={18} color="#64748B" />
               </TouchableOpacity>
             </View>
-          </View>
-
+          </View>{" "}
           <View style={styles.commentsSection}>
             <Text style={styles.commentsTitle}>
-              Komentar ({post.comments.length})
+              Komentar ({post.comments?.length || 0})
             </Text>
-            {post.comments.length === 0 ? (
+            {!post.comments || post.comments.length === 0 ? (
               <View style={styles.emptyCommentsContainer}>
                 <Text style={styles.emptyCommentsText}>
                   Belum ada komentar. Jadilah yang pertama berkomentar!
@@ -255,18 +257,18 @@ export default function CommunityDetailScreen() {
               post.comments.map((comment) => (
                 <View key={comment.id}>
                   <View style={styles.commentCard}>
+                    {" "}
                     <View style={styles.commentHeader}>
-                      <Image
-                        source={{
-                          uri:
-                            DEFAULT_AVATAR +
-                            (comment.userId.charCodeAt(0) % 70),
-                        }}
-                        style={styles.commentAvatar}
-                      />
+                      <View style={styles.commentAvatarContainer}>
+                        <Text style={styles.commentAvatarText}>
+                          {(comment.user?.username || "A")
+                            .charAt(0)
+                            .toUpperCase()}
+                        </Text>
+                      </View>
                       <View style={styles.commentHeaderText}>
                         <Text style={styles.commentAuthor}>
-                          {comment.user.username}
+                          {comment.user?.username || "Anonymous"}
                         </Text>
                         <Text style={styles.commentTime}>
                           {formatTimeAgo(comment.createdAt)}
@@ -293,17 +295,13 @@ export default function CommunityDetailScreen() {
               ))
             )}
           </View>
-        </ScrollView>
-
+        </ScrollView>{" "}
         <View style={styles.commentInputContainer}>
-          <Image
-            source={{
-              uri: user
-                ? DEFAULT_AVATAR + (user.id.charCodeAt(0) % 70)
-                : DEFAULT_AVATAR + "1",
-            }}
-            style={styles.currentUserAvatar}
-          />
+          <View style={styles.currentUserAvatarContainer}>
+            <Text style={styles.currentUserAvatarText}>
+              {user ? user.username?.charAt(0).toUpperCase() || "U" : "U"}
+            </Text>
+          </View>
           <TextInput
             style={styles.commentInput}
             placeholder="Tulis komentar..."
@@ -397,11 +395,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  avatar: {
+  avatarContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
+    backgroundColor: colors.primaryBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.white,
   },
   authorName: {
     fontSize: 14,
@@ -477,11 +483,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  commentAvatar: {
+  commentAvatarContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
     marginRight: 8,
+    backgroundColor: colors.primaryBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentAvatarText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: colors.white,
   },
   commentHeaderText: {
     flex: 1,
@@ -527,11 +541,19 @@ const styles = StyleSheet.create({
     borderTopColor: "#F1F5F9",
     padding: 12,
   },
-  currentUserAvatar: {
+  currentUserAvatarContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
     marginRight: 12,
+    backgroundColor: colors.primaryBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  currentUserAvatarText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: colors.white,
   },
   commentInput: {
     flex: 1,

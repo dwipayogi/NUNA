@@ -23,12 +23,18 @@ export interface Post {
   id: string;
   title: string;
   content: string;
-  tags: string[];
+  tags?: string[];
+  likes?: number;
+  commentsCount?: number;
   createdAt: string;
   updatedAt: string;
-  userId: string;
-  user: User;
-  comments: Comment[];
+  userId?: string;
+  user?: {
+    id: string;
+    username: string;
+  };
+  comments?: Comment[];
+  likedByMe?: boolean;
 }
 
 // Format the time difference between now and a given date
@@ -211,4 +217,50 @@ export const getCurrentUser = async (): Promise<User | null> => {
     console.error("Error getting user data:", error);
     return null;
   }
+};
+
+// Function to like a post
+export const likePost = async (postId: string) => {
+  const token = await AsyncStorage.getItem("token");
+
+  const response = await fetch(
+    `http://localhost:3000/api/posts/${postId}/like`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to like post");
+  }
+
+  return await response.json();
+};
+
+// Function to unlike a post
+export const unlikePost = async (postId: string) => {
+  const token = await AsyncStorage.getItem("token");
+
+  const response = await fetch(
+    `http://localhost:3000/api/posts/${postId}/unlike`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to unlike post");
+  }
+
+  return await response.json();
 };

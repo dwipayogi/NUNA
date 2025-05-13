@@ -41,7 +41,6 @@ export default function JournalDetailScreen() {
   useEffect(() => {
     fetchJournalDetails();
   }, [id]);
-
   const fetchJournalDetails = async () => {
     if (!id) {
       setError("Journal ID is missing");
@@ -60,7 +59,6 @@ export default function JournalDetailScreen() {
       setSelectedMood(data.mood);
     } catch (err: any) {
       setError(err.message || "Failed to load journal details");
-      Alert.alert("Error", "Failed to load journal details. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -93,10 +91,8 @@ export default function JournalDetailScreen() {
     };
     return new Date(dateString).toLocaleDateString("id-ID", options);
   };
-
   const handleSaveEdit = async () => {
     if (!editTitle.trim() || !editContent.trim() || !selectedMood) {
-      Alert.alert("Error", "Harap isi semua kolom (judul, isi, dan mood)");
       return;
     }
 
@@ -110,37 +106,21 @@ export default function JournalDetailScreen() {
 
       setJournal(updatedJournal);
       hideModal();
-      Alert.alert("Sukses", "Catatan berhasil diperbarui");
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Gagal memperbarui catatan");
+      console.error("Error updating journal:", err);
     } finally {
       setLoading(false);
     }
   };
-
   const handleDelete = async () => {
-    Alert.alert(
-      "Konfirmasi",
-      "Apakah Anda yakin ingin menghapus catatan ini?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await deleteJournal(id as string);
-              Alert.alert("Sukses", "Catatan berhasil dihapus");
-              router.back();
-            } catch (err: any) {
-              Alert.alert("Error", err.message || "Gagal menghapus catatan");
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
+    try {
+      setLoading(true);
+      await deleteJournal(id as string);
+      router.back();
+    } catch (err: any) {
+      console.error("Error deleting journal:", err);
+      setLoading(false);
+    }
   };
 
   if (loading) {

@@ -16,7 +16,13 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 import { colors } from "@/constants/colors";
-import { getAllPosts, formatTimeAgo, Post } from "@/services/communityService";
+import {
+  getAllPosts,
+  formatTimeAgo,
+  Post,
+  likePost,
+  unlikePost,
+} from "@/services/communityService";
 
 // This screen shows a list of community posts where users can read and interact with discussions.
 // Users can search for posts, filter by categories, and create new posts.
@@ -53,7 +59,11 @@ export default function CommunityScreen() {
   };
 
   // This function displays each post in the list.
-  const renderPost = ({ item }: { item: Post }) => (
+  const renderPost = ({
+    item,
+  }: {
+    item: Post & { likes?: number; commentsCount?: number };
+  }) => (
     <TouchableOpacity
       style={styles.postCard}
       onPress={() => {
@@ -92,17 +102,56 @@ export default function CommunityScreen() {
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
-      </View>
-      {/* Displays actions like liking, commenting, and sharing. */}
+      </View>{" "}
+      {/* Displays actions like liking, commenting, and sharing. */}{" "}
       <View style={styles.postActions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <Feather name="heart" size={18} color="#64748B" />
-          <Text style={styles.actionText}>0</Text>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={async () => {
+            try {
+              if (item.likedByMe) {
+                // If already liked, unlike the post
+                const result = await unlikePost(item.id);
+                setPosts((prevPosts) =>
+                  prevPosts.map((p) =>
+                    p.id === item.id
+                      ? { ...p, likes: result.likes, likedByMe: false }
+                      : p
+                  )
+                );
+              } else {
+                // Otherwise, like the post
+                const result = await likePost(item.id);
+                setPosts((prevPosts) =>
+                  prevPosts.map((p) =>
+                    p.id === item.id
+                      ? { ...p, likes: result.likes, likedByMe: true }
+                      : p
+                  )
+                );
+              }
+            } catch (error) {
+              console.error("Error toggling like:", error);
+              Alert.alert("Error", "Failed to update like status");
+            }
+          }}
+        >
+          <Feather
+            name="heart"
+            size={18}
+            color={item.likedByMe ? "#EF4444" : "#64748B"}
+            solid={item.likedByMe}
+          />
+          <Text
+            style={[styles.actionText, item.likedByMe && { color: "#EF4444" }]}
+          >
+            {item.likes || 0}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton}>
           <Feather name="message-circle" size={18} color="#64748B" />
-          <Text style={styles.actionText}>{item.comments?.length || 0}</Text>
+          <Text style={styles.actionText}>{item.commentsCount || 0}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.actionButton}>
@@ -172,9 +221,17 @@ export default function CommunityScreen() {
           tabs={[
             "Semua",
             "Kesehatan Mental",
-            "Akademik",
-            "Kesejahteraan",
+            "Ujian",
+            "Stres",
+            "Motivasi",
+            "Keseimbangan",
+            "Manajemen Waktu",
             "Sosial",
+            "Akademik",
+            "Fokus",
+            "Meditasi",
+            "Kesejahteraan",
+            "Wellness",
           ]}
           activeTab={activeTab}
           onTabChange={setActiveTab}

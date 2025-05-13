@@ -222,6 +222,8 @@
       "title": "Post Title",
       "content": "Post content",
       "tags": ["tag1", "tag2"],
+      "likes": 5,
+      "commentsCount": 2,
       "createdAt": "2023-01-15T10:30:00Z",
       "updatedAt": "2023-01-15T10:30:00Z",
       "userId": "user-uuid-string",
@@ -258,6 +260,8 @@
     "title": "Post Title",
     "content": "Post content",
     "tags": ["tag1", "tag2"],
+    "likes": 5,
+    "commentsCount": 2,
     "createdAt": "2023-01-15T10:30:00Z",
     "updatedAt": "2023-01-15T10:30:00Z",
     "userId": "user-uuid-string",
@@ -294,6 +298,8 @@
       "title": "Post Title",
       "content": "Post content",
       "tags": ["tag1", "tag2"],
+      "likes": 5,
+      "commentsCount": 2,
       "createdAt": "2023-01-15T10:30:00Z",
       "updatedAt": "2023-01-15T10:30:00Z",
       "userId": "user-uuid-string",
@@ -318,6 +324,8 @@
       "title": "Post Title",
       "content": "Post content",
       "tags": ["tag1", "tag2"],
+      "likes": 5,
+      "commentsCount": 2,
       "createdAt": "2023-01-15T10:30:00Z",
       "updatedAt": "2023-01-15T10:30:00Z",
       "userId": "user-uuid-string",
@@ -408,6 +416,41 @@
   - `404 Not Found`: Post not found
   - `500 Server Error`: Server error
 
+#### Like Post
+
+- **Endpoint:** `POST /api/posts/:id/like`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Response (200 OK):**
+  ```json
+  {
+    "message": "Post liked successfully",
+    "likes": 6
+  }
+  ```
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `404 Not Found`: Post not found
+  - `500 Server Error`: Server error
+
+#### Unlike Post
+
+- **Endpoint:** `POST /api/posts/:id/unlike`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Response (200 OK):**
+  ```json
+  {
+    "message": "Post unliked successfully",
+    "likes": 5
+  }
+  ```
+- **Error Responses:**
+  - `400 Bad Request`: Post has no likes to remove
+  - `401 Unauthorized`: Not authorized
+  - `404 Not Found`: Post not found
+  - `500 Server Error`: Server error
+
 ---
 
 ### Comments
@@ -464,6 +507,7 @@
     }
   }
   ```
+- **Note:** Creates a comment and automatically increments the `commentsCount` of the associated post.
 - **Error Responses:**
   - `400 Bad Request`: Comment content is required
   - `401 Unauthorized`: Not authorized
@@ -514,6 +558,7 @@
     "message": "Comment deleted successfully"
   }
   ```
+- **Note:** Deletes a comment and automatically decrements the `commentsCount` of the associated post.
 - **Error Responses:**
   - `401 Unauthorized`: Not authorized
   - `403 Forbidden`: Not authorized to delete this comment
@@ -663,4 +708,49 @@
   ```
 - **Error Responses:**
   - `404 Not Found`: Meditation not found
+  - `500 Server Error`: Server error
+
+---
+
+### Chat
+
+#### Chat with AI
+
+- **Endpoint:** `POST /api/chat`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Request Body:**
+  ```json
+  {
+    "message": "Saya merasa stres akhir-akhir ini, bagaimana cara mengatasinya?"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "role": "bot",
+    "content": "Stres adalah respons alami tubuh terhadap tekanan. Ada beberapa cara yang bisa membantu mengatasi stres, seperti meditasi, olahraga teratur, tidur yang cukup, dan berbicara dengan orang terdekat. Penting juga untuk mengidentifikasi sumber stres dan mencoba mengelolanya. Jika stres Anda sangat parah atau berkelanjutan, jangan ragu untuk mencari bantuan dari profesional kesehatan mental."
+  }
+  ```
+- **Error Responses:**
+  - `400 Bad Request`: Message is required
+  - `401 Unauthorized`: Not authorized
+  - `500 Server Error`: Server error
+
+#### Get AI Recommendations
+
+- **Endpoint:** `GET /api/chat/recommendations`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Gets AI-generated recommendations based on the authenticated user's journal entries
+- **Response (200 OK):**
+  ```json
+  {
+    "response": "Berdasarkan analisis mood dari jurnal Anda, tampaknya Anda sedang mengalami periode kecemasan ringan dengan beberapa momen reflektif. Saya merekomendasikan meditasi pernapasan mendalam selama 10-15 menit di pagi hari untuk membantu menenangkan pikiran dan meditasi body scan di malam hari untuk membantu tidur yang lebih nyenyak."
+  }
+  ```
+- **Note:** Recommendations are generated automatically based on the authenticated user's journal entries
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `404 Not Found`: No journal entries found for recommendations
   - `500 Server Error`: Server error

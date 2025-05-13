@@ -41,7 +41,6 @@ export default function JournalScreen() {
   useEffect(() => {
     fetchJournals();
   }, []);
-
   // Function to fetch journals from API
   const fetchJournals = async () => {
     try {
@@ -51,7 +50,6 @@ export default function JournalScreen() {
       setJournals(data);
     } catch (err: any) {
       setError(err.message || "Failed to load journals");
-      Alert.alert("Error", "Failed to load journals. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -219,10 +217,6 @@ export default function JournalScreen() {
               style={styles.submitButton}
               onPress={async () => {
                 if (!title.trim() || !content.trim() || !selectedMood) {
-                  Alert.alert(
-                    "Error",
-                    "Harap isi semua kolom (judul, isi, dan mood)"
-                  );
                   return;
                 }
 
@@ -242,12 +236,8 @@ export default function JournalScreen() {
 
                   // Refresh journals list
                   fetchJournals();
-                  Alert.alert("Sukses", "Catatan berhasil disimpan");
                 } catch (err: any) {
-                  Alert.alert(
-                    "Error",
-                    err.message || "Gagal menyimpan catatan"
-                  );
+                  console.error("Error creating journal:", err);
                 } finally {
                   setLoading(false);
                 }

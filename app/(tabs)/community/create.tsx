@@ -53,12 +53,12 @@ export default function CreatePostScreen() {
   };
   const handleSubmit = async () => {
     if (title.trim() === "" || content.trim() === "") {
-      Alert.alert("Error", "Judul dan konten harus diisi");
+      // Skip validation errors but continue requiring fields
       return;
     }
 
     if (selectedTags.length === 0) {
-      Alert.alert("Error", "Pilih minimal satu tag untuk postingan");
+      // Skip validation errors but continue requiring tags
       return;
     }
 
@@ -71,11 +71,10 @@ export default function CreatePostScreen() {
         tags: selectedTags,
       });
 
-      Alert.alert("Sukses", "Postingan berhasil dibuat", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      // On success, directly navigate back
+      router.back();
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Gagal membuat postingan");
+      console.error("Error creating post:", error);
       setIsSubmitting(false);
     }
   };
