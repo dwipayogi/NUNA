@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,70 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
+  Alert,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { colors } from "@/constants/colors";
 
 export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [dataSync, setDataSync] = useState(true); // Data profil pengguna contoh
-  const user = {
-    name: "Amalia Putri",
-    email: "amalia.putri@example.com",
+  const [dataSync, setDataSync] = useState(true);
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    username: "",
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user profile data
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem("token");
+
+      if (!token) {
+        console.log("No token found");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/api/auth/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      const data = await response.json();
+
+      setUser({
+        name: data.user.username || "User",
+        email: data.user.email || "user@example.com",
+        username: data.user.username || "User",
+      });
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      Alert.alert("Error", "Failed to load profile data");
+    } finally {
+      setLoading(false);
+    }
   };
+
   // Settings sections
   const accountSettings = [
     {
@@ -115,11 +164,14 @@ export default function ProfileScreen() {
       {/* Header */}{" "}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profil</Text>
-      </View>
+      </View>{" "}
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentInner}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={fetchUserProfile} />
+        }
       >
         {" "}
         {/* Profile Card */}{" "}
@@ -143,9 +195,26 @@ export default function ProfileScreen() {
           <View style={styles.settingsCard}>
             {supportSettings.map(renderSettingItem)}
           </View>
-        </View>
+        </View>{" "}
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={async () => {
+            try {
+              await AsyncStorage.removeItem("token");
+              Alert.alert("Berhasil", "Anda berhasil keluar dari aplikasi");
+              // Reset user data
+              setUser({
+                name: "",
+                email: "",
+                username: "",
+              });
+            } catch (error) {
+              console.error("Error logging out:", error);
+              Alert.alert("Error", "Gagal keluar dari aplikasi");
+            }
+          }}
+        >
           <Feather
             name="log-out"
             size={18}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ImageBackground,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -13,84 +15,51 @@ import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { colors } from "@/constants/colors";
-
-// Sample meditation sessions
-const MEDITATION_SESSIONS = [
-  {
-    id: "1",
-    title: "Fokus Tenang",
-    description: "Tingkatkan konsentrasi untuk sesi belajar",
-    duration: "10 menit",
-    image:
-      "https://images.pexels.com/photos/3560044/pexels-photo-3560044.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#3B82F6",
-  },
-  {
-    id: "2",
-    title: "Mengurangi Stres",
-    description: "Hilangkan ketegangan dan kecemasan",
-    duration: "15 menit",
-    image:
-      "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#FACC15",
-  },
-  {
-    id: "3",
-    title: "Tidur Nyenyak",
-    description: "Persiapkan pikiran untuk tidur yang nyenyak",
-    duration: "20 menit",
-    image:
-      "https://images.pexels.com/photos/355887/pexels-photo-355887.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#7C3AED",
-  },
-  {
-    id: "4",
-    title: "Reset Cepat",
-    description: "Mindfulness cepat untuk hari yang sibuk",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/3560168/pexels-photo-3560168.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#10B981",
-  },
-];
-
-// Contoh latihan pernapasan
-const BREATHING_EXERCISES = [
-  {
-    id: "1",
-    title: "Pernapasan 4-7-8",
-    description: "Tarik napas 4 detik, tahan 7 detik, hembuskan 8 detik",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#3B82F6",
-  },
-  {
-    id: "2",
-    title: "Pernapasan Kotak",
-    description: "Waktu yang sama untuk tarik napas, tahan, hembuskan, dan jeda",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/1834407/pexels-photo-1834407.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#FACC15",
-  },
-  {
-    id: "3",
-    title: "Diafragma",
-    description: "Pernapasan perut dalam untuk relaksasi",
-    duration: "10 menit",
-    image:
-      "https://images.pexels.com/photos/1472887/pexels-photo-1472887.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#EC4899",
-  },
-];
+import {
+  getAllMeditations,
+  Meditation,
+  categorizeMeditations,
+} from "@/services/meditateService";
 
 export default function MeditateScreen() {
   const [activeTab, setActiveTab] = useState("meditasi");
+  const [meditations, setMeditations] = useState<{
+    meditasi: Meditation[];
+    pernafasan: Meditation[];
+  }>({ meditasi: [], pernafasan: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const router = useRouter();
 
+  // Fetch meditations when component mounts
+  useEffect(() => {
+    fetchMeditations();
+  }, []);
+
+  // Function to fetch meditations from API
+  const fetchMeditations = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const meditationsData = await getAllMeditations();
+
+      // Categorize meditations
+      const categorized = categorizeMeditations(meditationsData);
+      setMeditations(categorized);
+    } catch (err: any) {
+      setError(err.message || "Failed to load meditation sessions");
+      Alert.alert(
+        "Error",
+        "Failed to load meditation sessions. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get the data based on the active tab
   const data =
-    activeTab === "meditasi" ? MEDITATION_SESSIONS : BREATHING_EXERCISES;
+    activeTab === "meditasi" ? meditations.meditasi : meditations.pernafasan;
 
   // Function to navigate to detail page
   const goToSessionDetail = (sessionId: string) => {
@@ -112,7 +81,6 @@ export default function MeditateScreen() {
           <Feather name="menu" size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
-
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "meditasi" && styles.activeTab]}
@@ -140,83 +108,110 @@ export default function MeditateScreen() {
             Pernafasan
           </Text>
         </TouchableOpacity>
-      </View>
-
+      </View>{" "}
       <ScrollView
         style={styles.contentContainer}
         contentContainerStyle={styles.contentInner}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.grid}>
-          {data.map((item) => (
-            <View key={item.id} style={styles.cardWrapper}>
-              <TouchableOpacity
-                style={styles.card}
-                onPress={() => goToSessionDetail(item.id)}
-              >
-                <ImageBackground
-                  source={{ uri: item.image }}
-                  style={styles.cardImage}
-                  imageStyle={styles.cardImageStyle}
-                >
-                  <View
-                    style={[
-                      styles.cardOverlay,
-                      { backgroundColor: `${item.color}40` },
-                    ]}
-                  />
-                  <View style={styles.cardContent}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                    <Text style={styles.cardDescription} numberOfLines={1}>
-                      {item.description}
-                    </Text>
-                    <Text style={styles.cardDuration}>{item.duration}</Text>
-                  </View>
-                </ImageBackground>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>
-          {activeTab === "meditasi"
-            ? "Rekomendasi Untuk Anda"
-            : "Latihan Populer"}
-        </Text>
-
-        <View style={styles.recommendedContainer}>
-          {data.slice(0, 2).map((item) => (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primaryBlue} />
+            <Text style={styles.loadingText}>Memuat meditasi...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
-              key={`rec-${item.id}`}
-              style={styles.recommendedCard}
-              onPress={() => goToSessionDetail(item.id)}
+              style={styles.retryButton}
+              onPress={fetchMeditations}
             >
-              <ImageBackground
-                source={{ uri: item.image }}
-                style={styles.recommendedImage}
-                imageStyle={styles.recommendedImageStyle}
-              >
-                <View
-                  style={[
-                    styles.cardOverlay,
-                    { backgroundColor: `${item.color}40` },
-                  ]}
-                />
-                <View style={styles.recommendedContent}>
-                  <Text style={styles.recommendedTitle}>{item.title}</Text>
-                  <View style={styles.recommendedMeta}>
-                    <Text style={styles.recommendedDuration}>
-                      {item.duration}
-                    </Text>
-                    <View style={styles.recommendedInfo}>
-                      <Feather name="info" size={12} color="#FFFFFF" />
-                    </View>
-                  </View>
-                </View>
-              </ImageBackground>
+              <Text style={styles.retryButtonText}>Coba Lagi</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          </View>
+        ) : (
+          <>
+            <View style={styles.grid}>
+              {data.map((item) => (
+                <View key={item.id} style={styles.cardWrapper}>
+                  <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => goToSessionDetail(item.id)}
+                  >
+                    <ImageBackground
+                      source={{ uri: item.imageUrl }}
+                      style={styles.cardImage}
+                      imageStyle={styles.cardImageStyle}
+                    >
+                      <View
+                        style={[
+                          styles.cardOverlay,
+                          { backgroundColor: `${item.color}40` },
+                        ]}
+                      />
+                      <View style={styles.cardContent}>
+                        <Text style={styles.cardTitle}>{item.title}</Text>
+                        <Text style={styles.cardDescription} numberOfLines={1}>
+                          {item.description}
+                        </Text>
+                        <Text style={styles.cardDuration}>{`${Math.floor(
+                          item.duration / 60
+                        )} menit`}</Text>
+                      </View>
+                    </ImageBackground>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+
+            {data.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>
+                  {activeTab === "meditasi"
+                    ? "Rekomendasi Untuk Anda"
+                    : "Latihan Populer"}
+                </Text>
+
+                <View style={styles.recommendedContainer}>
+                  {data.slice(0, 2).map((item) => (
+                    <TouchableOpacity
+                      key={`rec-${item.id}`}
+                      style={styles.recommendedCard}
+                      onPress={() => goToSessionDetail(item.id)}
+                    >
+                      <ImageBackground
+                        source={{ uri: item.imageUrl }}
+                        style={styles.recommendedImage}
+                        imageStyle={styles.recommendedImageStyle}
+                      >
+                        <View
+                          style={[
+                            styles.cardOverlay,
+                            { backgroundColor: `${item.color}40` },
+                          ]}
+                        />
+                        <View style={styles.recommendedContent}>
+                          <Text style={styles.recommendedTitle}>
+                            {item.title}
+                          </Text>
+                          <View style={styles.recommendedMeta}>
+                            {" "}
+                            <Text style={styles.recommendedDuration}>
+                              {`${Math.floor(item.duration / 60)} menit`}
+                            </Text>
+                            <View style={styles.recommendedInfo}>
+                              <Feather name="info" size={12} color="#FFFFFF" />
+                            </View>
+                          </View>
+                        </View>
+                      </ImageBackground>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,6 +221,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundBlue,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: colors.grayTwo,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.grayTwo,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: colors.primaryBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "600",
   },
   header: {
     flexDirection: "row",

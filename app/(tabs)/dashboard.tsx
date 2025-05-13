@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +18,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [greeting, setGreeting] = useState("Selamat Pagi!");
   const [username, setUsername] = useState("");
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   useEffect(() => {
     const getGreeting = () => {
@@ -30,13 +30,19 @@ export default function HomeScreen() {
 
     setGreeting(getGreeting());
 
-    // Fetch username from AsyncStorage
+    // Fetch username and mood from AsyncStorage
     const getUserData = async () => {
       try {
         const userDataString = await AsyncStorage.getItem("user");
         if (userDataString) {
           const userData = JSON.parse(userDataString);
           setUsername(userData.username || "");
+        }
+
+        // Get saved mood
+        const savedMood = await AsyncStorage.getItem("currentMood");
+        if (savedMood) {
+          setSelectedMood(savedMood);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -45,6 +51,24 @@ export default function HomeScreen() {
 
     getUserData();
   }, []);
+
+  // Save mood to AsyncStorage
+  const saveMood = async (mood: string) => {
+    try {
+      setSelectedMood(mood);
+      await AsyncStorage.setItem("currentMood", mood);
+
+      // Save mood history with timestamp
+      const timestamp = new Date().toISOString();
+      const moodEntry = { mood, timestamp };
+      const moodHistoryString = await AsyncStorage.getItem("moodHistory");
+      let moodHistory = moodHistoryString ? JSON.parse(moodHistoryString) : [];
+      moodHistory.push(moodEntry);
+      await AsyncStorage.setItem("moodHistory", JSON.stringify(moodHistory));
+    } catch (error) {
+      console.error("Error saving mood:", error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -77,19 +101,25 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={index}
                   style={styles.moodItem}
-                  onPress={() => {
-                    /* Mood tracking logic */
-                  }}
+                  onPress={() => saveMood(mood)}
                 >
                   <View
                     style={[
                       styles.moodEmoji,
                       { backgroundColor: getMoodColor(mood) },
+                      selectedMood === mood && styles.selectedMoodEmoji,
                     ]}
                   >
                     <Text style={styles.emojiText}>{getMoodEmoji(mood)}</Text>
                   </View>
-                  <Text style={styles.moodText}>{mood}</Text>
+                  <Text
+                    style={[
+                      styles.moodText,
+                      selectedMood === mood && styles.selectedMoodText,
+                    ]}
+                  >
+                    {mood}
+                  </Text>
                 </TouchableOpacity>
               )
             )}
@@ -258,6 +288,15 @@ const styles = StyleSheet.create({
   moodText: {
     fontSize: 12,
     color: "#475569",
+  },
+  selectedMoodEmoji: {
+    borderWidth: 2,
+    borderColor: colors.primaryBlue,
+    transform: [{ scale: 1.1 }],
+  },
+  selectedMoodText: {
+    fontWeight: "600",
+    color: colors.primaryBlue,
   },
   sectionTitle: {
     fontSize: 18,

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
   TextInput,
   ScrollView,
   ActivityIndicator,
@@ -21,9 +20,6 @@ import { getAllPosts, formatTimeAgo, Post } from "@/services/communityService";
 
 // This screen shows a list of community posts where users can read and interact with discussions.
 // Users can search for posts, filter by categories, and create new posts.
-
-// Default avatar for users without profile images
-const DEFAULT_AVATAR = "https://i.pravatar.cc/150?img=";
 
 export default function CommunityScreen() {
   // This is the main screen for the community section.
@@ -68,15 +64,14 @@ export default function CommunityScreen() {
         });
       }}
     >
-      {/* Displays the author's information and post details. */}
+      {/* Displays the author's information and post details. */}{" "}
       <View style={styles.postHeader}>
         <View style={styles.authorContainer}>
-          <Image
-            source={{
-              uri: DEFAULT_AVATAR + (item.userId?.charCodeAt(0) % 70 || "1"),
-            }}
-            style={styles.avatar}
-          />
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>
+              {(item.user?.username || "A").charAt(0).toUpperCase()}
+            </Text>
+          </View>
           <View>
             <Text style={styles.authorName}>
               {item.user?.username || "Anonymous"}
@@ -85,12 +80,10 @@ export default function CommunityScreen() {
           </View>
         </View>
       </View>
-
       <Text style={styles.postTitle}>{item.title}</Text>
       <Text style={styles.postContent} numberOfLines={3}>
         {item.content}
       </Text>
-
       {/* Displays tags related to the post. */}
       <View style={styles.tagsContainer}>
         {item.tags &&
@@ -100,7 +93,6 @@ export default function CommunityScreen() {
             </View>
           ))}
       </View>
-
       {/* Displays actions like liking, commenting, and sharing. */}
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
@@ -359,11 +351,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  avatar: {
+  avatarContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
+    backgroundColor: colors.primaryBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.white,
   },
   authorName: {
     fontSize: 14,

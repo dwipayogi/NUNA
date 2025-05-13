@@ -27,7 +27,6 @@ import {
 } from "@/services/journalService";
 
 export default function JournalScreen() {
-  const [activeTab, setActiveTab] = useState("catatan");
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [journals, setJournals] = useState<Journal[]>([]);
@@ -119,131 +118,30 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="auto" />{" "}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Catatan Harian</Text>
       </View>
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "catatan" && styles.activeTab]}
-          onPress={() => setActiveTab("catatan")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "catatan" && styles.activeTabText,
-            ]}
-          >
-            Catatan
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "stats" && styles.activeTab]}
-          onPress={() => setActiveTab("stats")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "stats" && styles.activeTabText,
-            ]}
-          >
-            Analisis
-          </Text>
-        </TouchableOpacity>
-      </View>{" "}
-      {activeTab === "catatan" ? (
-        loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primaryBlue} />
-          </View>
-        ) : journals.length > 0 ? (
-          <FlatList
-            data={journals}
-            renderItem={renderJournalEntry}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.entriesList}
-            showsVerticalScrollIndicator={false}
-            refreshing={loading}
-            onRefresh={fetchJournals}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              Belum ada catatan. Tambahkan catatan baru!
-            </Text>
-          </View>
-        )
-      ) : (
-        <ScrollView
-          style={styles.statsContainer}
-          contentContainerStyle={styles.statsContent}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+        </View>
+      ) : journals.length > 0 ? (
+        <FlatList
+          data={journals}
+          renderItem={renderJournalEntry}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.entriesList}
           showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.statsCard}>
-            <Text style={styles.statsCardTitle}>Monthly Overview</Text>
-            <Text style={styles.statsCardSubtitle}>June 2025</Text>
-
-            <View style={styles.calendarPlaceholder}>
-              <Text style={styles.placeholderText}>
-                Calendar view will be displayed here
-              </Text>
-            </View>
-
-            <View style={styles.moodSummary}>
-              <Text style={styles.moodSummaryTitle}>Mood Summary</Text>
-              <View style={styles.moodDistribution}>
-                <View style={styles.moodPercentage}>
-                  <View
-                    style={[
-                      styles.moodPercentBar,
-                      { backgroundColor: "#4ADE80", width: "40%" },
-                    ]}
-                  />
-                  <Text style={styles.moodPercentText}>Positive: 40%</Text>
-                </View>
-                <View style={styles.moodPercentage}>
-                  <View
-                    style={[
-                      styles.moodPercentBar,
-                      { backgroundColor: "#FACC15", width: "30%" },
-                    ]}
-                  />
-                  <Text style={styles.moodPercentText}>Neutral: 30%</Text>
-                </View>
-                <View style={styles.moodPercentage}>
-                  <View
-                    style={[
-                      styles.moodPercentBar,
-                      { backgroundColor: "#F87171", width: "30%" },
-                    ]}
-                  />
-                  <Text style={styles.moodPercentText}>Negative: 30%</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.topicsCard}>
-            <Text style={styles.statsCardTitle}>Topik Umum</Text>
-            <View style={styles.topicTags}>
-              <View style={styles.topicTag}>
-                <Text style={styles.topicTagText}>ujian</Text>
-              </View>
-              <View style={styles.topicTag}>
-                <Text style={styles.topicTagText}>stres</Text>
-              </View>
-              <View style={styles.topicTag}>
-                <Text style={styles.topicTagText}>tidur</Text>
-              </View>
-              <View style={styles.topicTag}>
-                <Text style={styles.topicTagText}>teman</Text>
-              </View>
-              <View style={styles.topicTag}>
-                <Text style={styles.topicTagText}>proyek</Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
+          refreshing={loading}
+          onRefresh={fetchJournals}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            Belum ada catatan. Tambahkan catatan baru!
+          </Text>
+        </View>
       )}
       <TouchableOpacity style={styles.newEntryButton} onPress={showModal}>
         <Feather name="plus" size={24} color="#FFFFFF" />
@@ -381,27 +279,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.primaryBlue,
   },
-  tabContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 8,
-    borderRadius: 20,
-  },
-  activeTab: {
-    backgroundColor: colors.primaryBlue,
-  },
-  tabText: {
-    fontSize: 14,
-    color: colors.primaryBlue,
-  },
-  activeTabText: {
-    color: colors.backgroundBlue,
-  },
   entriesList: {
     paddingHorizontal: 16,
     paddingBottom: 80,
@@ -509,98 +386,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
-  },
-  statsContainer: {
-    flex: 1,
-  },
-  statsContent: {
-    padding: 16,
-    paddingBottom: 80,
-  },
-  statsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statsCardTitle: {
-    fontSize: 18,
-    color: "#1E293B",
-    marginBottom: 4,
-  },
-  statsCardSubtitle: {
-    fontSize: 14,
-    color: "#64748B",
-    marginBottom: 16,
-  },
-  calendarPlaceholder: {
-    height: 200,
-    backgroundColor: "#F1F5F9",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: "#64748B",
-  },
-  moodSummary: {
-    marginTop: 8,
-  },
-  moodSummaryTitle: {
-    fontSize: 16,
-    color: "#1E293B",
-    marginBottom: 12,
-  },
-  moodDistribution: {
-    marginTop: 8,
-  },
-  moodPercentage: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  moodPercentBar: {
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  moodPercentText: {
-    fontSize: 14,
-    color: "#475569",
-  },
-  topicsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  topicTags: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 8,
-  },
-  topicTag: {
-    backgroundColor: "#F1F5F9",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    margin: 4,
-  },
-  topicTagText: {
-    fontSize: 14,
-    color: "#475569",
   },
   textArea: {
     height: 120,

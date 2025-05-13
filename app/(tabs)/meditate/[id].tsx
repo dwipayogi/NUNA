@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ImageBackground,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -13,143 +15,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { colors } from "@/constants/colors";
-
-// Sample meditation sessions
-const MEDITATION_SESSIONS = [
-  {
-    id: "1",
-    title: "Fokus Tenang",
-    description: "Meningkatkan konsentrasi untuk sesi belajar",
-    longDescription:
-      "Meditasi ini membantu Anda mengembangkan fokus mendalam dengan membimbing Anda melalui teknik untuk membersihkan pikiran dari gangguan. Cocok untuk sebelum sesi belajar atau ujian ketika Anda perlu berkonsentrasi sepenuhnya.",
-    duration: "10 menit",
-    image:
-      "https://images.pexels.com/photos/3560044/pexels-photo-3560044.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#3B82F6",
-    steps: [
-      "Cari tempat yang tenang untuk duduk dengan nyaman",
-      "Tutup mata Anda dan ambil 3 napas dalam",
-      "Fokuskan perhatian Anda pada pernapasan",
-      "Ketika pikiran Anda melayang, bawa kembali dengan lembut ke napas Anda",
-      "Lanjutkan selama durasi sesi",
-    ],
-  },
-  {
-    id: "2",
-    title: "Pelepasan Stres",
-    description: "Menghilangkan ketegangan dan kecemasan",
-    longDescription:
-      "Meditasi terpandu ini berfokus pada pelepasan stres dan kecemasan yang menumpuk. Melalui visualisasi dan teknik pernapasan, Anda akan belajar melepaskan ketegangan di tubuh Anda dan menenangkan pikiran yang gelisah.",
-    duration: "15 menit",
-    image:
-      "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#FACC15",
-    steps: [
-      "Berbaring atau duduk dalam posisi yang nyaman",
-      "Tutup mata Anda dan mulai perhatikan napas Anda",
-      "Pindai tubuh Anda untuk area yang tegang",
-      "Bayangkan bernapas dengan rileks ke area yang tegang",
-      "Biarkan pikiran Anda melepaskan kekhawatiran",
-    ],
-  },
-  {
-    id: "3",
-    title: "Tidur Nyenyak",
-    description: "Mempersiapkan pikiran untuk tidur yang nyenyak",
-    longDescription:
-      "Dirancang untuk membantu Anda beralih dari hari yang sibuk ke tidur yang memulihkan. Meditasi ini menggunakan pemindaian tubuh dan pernapasan lembut untuk menenangkan sistem saraf Anda dan mempersiapkan tidur yang dalam dan menyegarkan.",
-    duration: "20 menit",
-    image:
-      "https://images.pexels.com/photos/355887/pexels-photo-355887.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#7C3AED",
-    steps: [
-      "Berbaring di tempat tidur Anda dalam posisi yang nyaman",
-      "Mulailah dengan mengambil napas yang lambat dan dalam",
-      "Rasakan tubuh Anda menjadi berat dan rileks",
-      "Biarkan pikiran Anda melayang dan lepaskan pikiran hari ini",
-      "Lanjutkan bernapas dalam-dalam hingga Anda tertidur",
-    ],
-  },
-  {
-    id: "4",
-    title: "Reset Cepat",
-    description: "Mindfulness cepat untuk hari yang sibuk",
-    longDescription:
-      "Meditasi singkat namun kuat yang dirancang untuk masuk ke jadwal yang sibuk. Dalam waktu hanya 5 menit, Anda akan belajar mereset keadaan mental Anda, mengurangi stres, dan kembali ke hari Anda dengan kejernihan dan fokus baru.",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/3560168/pexels-photo-3560168.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#10B981",
-    steps: [
-      "Cari tempat yang tenang dan duduk dengan nyaman",
-      "Ambil 3 napas dalam",
-      "Fokus pada saat ini",
-      "Akui pikiran Anda tanpa penilaian",
-      "Kembali ke hari Anda dengan fokus baru",
-    ],
-  },
-];
-
-// Contoh latihan pernapasan
-const BREATHING_EXERCISES = [
-  {
-    id: "1",
-    title: "Pernapasan 4-7-8",
-    description: "Tarik napas selama 4, tahan selama 7, buang napas selama 8",
-    longDescription:
-      "Teknik pernapasan 4-7-8 dirancang untuk mengurangi kecemasan dan membantu Anda tidur. Pola ini bertindak sebagai penenang alami untuk sistem saraf, membantu dengan cepat mengurangi ketegangan dan mempromosikan relaksasi.",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#3B82F6",
-    steps: [
-      "Duduk dengan nyaman dengan punggung lurus",
-      "Tarik napas perlahan melalui hidung selama hitungan 4",
-      "Tahan napas Anda selama hitungan 7",
-      "Buang napas sepenuhnya melalui mulut selama hitungan 8",
-      "Ulangi 3-4 kali",
-    ],
-  },
-  {
-    id: "2",
-    title: "Pernapasan Kotak",
-    description: "Waktu yang sama untuk tarik napas, tahan, buang napas, dan jeda",
-    longDescription:
-      "Pernapasan kotak adalah teknik kuat yang digunakan oleh atlet, personel militer, dan praktisi yoga untuk meningkatkan konsentrasi dan kinerja. Teknik ini menciptakan ritme yang membantu mengatur sistem saraf otonom Anda.",
-    duration: "5 menit",
-    image:
-      "https://images.pexels.com/photos/1834407/pexels-photo-1834407.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#FACC15",
-    steps: [
-      "Duduk tegak dalam posisi yang nyaman",
-      "Buang napas perlahan melalui mulut Anda",
-      "Tarik napas melalui hidung selama hitungan 4",
-      "Tahan napas Anda selama hitungan 4",
-      "Buang napas melalui mulut selama hitungan 4",
-      "Jeda selama hitungan 4 sebelum menarik napas lagi",
-      "Ulangi selama beberapa menit",
-    ],
-  },
-  {
-    id: "3",
-    title: "Pernapasan Diafragma",
-    description: "Pernapasan perut dalam untuk relaksasi",
-    longDescription:
-      "Pernapasan diafragma, atau pernapasan perut, dirancang untuk membantu Anda menggunakan diafragma dengan benar saat bernapas. Teknik ini membantu memperkuat diafragma Anda, mengurangi stres, dan meningkatkan stabilitas otot inti.",
-    duration: "10 menit",
-    image:
-      "https://images.pexels.com/photos/1472887/pexels-photo-1472887.jpeg?auto=compress&cs=tinysrgb&w=600",
-    color: "#EC4899",
-    steps: [
-      "Berbaring telentang dengan lutut sedikit ditekuk",
-      "Letakkan satu tangan di dada Anda dan yang lainnya di perut Anda",
-      "Tarik napas perlahan melalui hidung, rasakan perut Anda mengembang",
-      "Dada Anda harus tetap relatif diam",
-      "Buang napas perlahan melalui bibir yang mengerucut",
-      "Ulangi selama 5-10 menit",
-    ],
-  },
-];
+import {
+  getMeditationById,
+  Meditation,
+  formatTime,
+} from "@/services/meditateService";
 
 export default function MeditationDetailScreen() {
   const { id, type } = useLocalSearchParams();
@@ -157,27 +27,37 @@ export default function MeditationDetailScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  const [meditation, setMeditation] = useState<Meditation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Determine if we're showing a meditation or breathing exercise
-  const allSessions =
-    type === "breathe" ? BREATHING_EXERCISES : MEDITATION_SESSIONS;
-  const session = allSessions.find((s) => s.id === id);
-
+  // Fetch meditation data when component mounts
   useEffect(() => {
-    if (session) {
-      // Convert duration string like "10 min" to seconds (600)
-      const durationInMinutes = parseInt(session.duration.split(" ")[0]);
-      setTotalTime(durationInMinutes * 60);
-    }
-  }, [session]);
+    fetchMeditationDetails();
+  }, [id]);
 
-  // Format time display (e.g., convert 75 seconds to "01:15")
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
+  // Function to fetch meditation by ID
+  const fetchMeditationDetails = async () => {
+    if (!id) {
+      setError("Meditation ID is missing");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const meditationData = await getMeditationById(id as string);
+      setMeditation(meditationData);
+      setTotalTime(meditationData.duration);
+    } catch (err: any) {
+      setError(err.message || "Failed to load meditation details");
+      Alert.alert(
+        "Error",
+        "Failed to load meditation details. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle timer
@@ -209,7 +89,31 @@ export default function MeditationDetailScreen() {
     setIsPlaying(false);
   };
 
-  if (!session) {
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            {type === "pernafasan" ? "Pernafasan" : "Meditasi"}
+          </Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+          <Text style={styles.loadingText}>Memuat meditasi...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!meditation || error) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar style="auto" />
@@ -224,7 +128,17 @@ export default function MeditationDetailScreen() {
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.notFoundContainer}>
-          <Text style={styles.notFoundText}>Sesi tidak ditemukan</Text>
+          <Text style={styles.notFoundText}>
+            {error || "Sesi tidak ditemukan"}
+          </Text>
+          {error && (
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={fetchMeditationDetails}
+            >
+              <Text style={styles.retryButtonText}>Coba Lagi</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -252,30 +166,40 @@ export default function MeditationDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <ImageBackground
-          source={{ uri: session.image }}
+          source={{ uri: meditation.imageUrl }}
           style={styles.heroImage}
           imageStyle={styles.heroImageStyle}
         >
           <View
-            style={[styles.overlay, { backgroundColor: `${session.color}60` }]}
+            style={[
+              styles.overlay,
+              { backgroundColor: `${meditation.color}60` },
+            ]}
           />
           <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>{session.title}</Text>
-            <Text style={styles.heroDuration}>{session.duration}</Text>
+            <Text style={styles.heroTitle}>{meditation.title}</Text>
+            <Text style={styles.heroDuration}>{`${Math.floor(
+              meditation.duration / 60
+            )} menit`}</Text>
           </View>
         </ImageBackground>
 
         <View style={styles.descriptionContainer}>
           <Text style={styles.descriptionTitle}>Tentang sesi ini</Text>
-          <Text style={styles.descriptionText}>{session.longDescription}</Text>
+          <Text style={styles.descriptionText}>
+            {meditation.longDescription}
+          </Text>
         </View>
 
         <View style={styles.stepsContainer}>
           <Text style={styles.stepsTitle}>Cara berlatih</Text>
-          {session.steps.map((step, index) => (
+          {meditation.steps.map((step, index) => (
             <View key={index} style={styles.stepItem}>
               <View
-                style={[styles.stepNumber, { backgroundColor: session.color }]}
+                style={[
+                  styles.stepNumber,
+                  { backgroundColor: meditation.color },
+                ]}
               >
                 <Text style={styles.stepNumberText}>{index + 1}</Text>
               </View>
@@ -296,7 +220,7 @@ export default function MeditationDetailScreen() {
                 styles.progressFill,
                 {
                   width: `${(currentTime / totalTime) * 100}%`,
-                  backgroundColor: session.color,
+                  backgroundColor: meditation.color,
                 },
               ]}
             />
@@ -309,7 +233,10 @@ export default function MeditationDetailScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.playPauseButton, { backgroundColor: session.color }]}
+            style={[
+              styles.playPauseButton,
+              { backgroundColor: meditation.color },
+            ]}
             onPress={() => setIsPlaying(!isPlaying)}
           >
             <Feather
@@ -332,6 +259,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundBlue,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: colors.grayTwo,
+  },
+  retryButton: {
+    backgroundColor: colors.primaryBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "600",
   },
   header: {
     flexDirection: "row",

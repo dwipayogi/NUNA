@@ -25,7 +25,7 @@ export default function Register() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("https://nuna.yogserver.web.id/api/auth/register", {
+      const response = await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
