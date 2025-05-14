@@ -5,6 +5,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Markdown from "react-native-markdown-display";
@@ -69,120 +71,126 @@ export default function Chatbot() {
     }, 100);
   };
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <View style={styles.headerContainer}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Chatbot</Text>
-        </View>
-        <View style={styles.modeToggle}>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === "chat" ? styles.activeMode : null,
-            ]}
-            onPress={() => setMode("chat")}
-          >
-            <Feather
-              name="message-circle"
-              size={20}
-              color={mode === "chat" ? colors.white : colors.primaryBlue}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.modeButton,
-              mode === "voice" ? styles.activeMode : null,
-            ]}
-            onPress={() => setMode("voice")}
-          >
-            <Feather
-              name="phone"
-              size={20}
-              color={mode === "voice" ? colors.white : colors.primaryBlue}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>{" "}
-      {mode === "chat" ? (
-        <>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.chatContainer}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ flexGrow: 1 }}
-          >
-            {/* Message */}
-            {messages.map((message, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.messageBubble,
-                  message.role === "user"
-                    ? styles.userMessage
-                    : styles.botMessage,
-                ]}
-              >
-                <Markdown>{message.message}</Markdown>
-              </View>
-            ))}
-          </ScrollView>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.promptsContainer}
-            contentContainerStyle={styles.promptsContentContainer}
-          >
-            {templatePrompts.map((prompt, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.promptButton}
-                onPress={() => handleTemplatePrompt(prompt)}
-              >
-                <Text style={styles.promptText}>{prompt}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {/* Input Field */}
-          <View style={styles.inputContainer}>
-            <Input
-              placeholder="Masukkan pesan disini..."
-              value={input.message}
-              onChangeText={(message) => setInput({ ...input, message })}
-              style={{ flex: 1 }}
-            />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={styles.headerContainer}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Chatbot</Text>
+          </View>
+          <View style={styles.modeToggle}>
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                sendMessage(input);
-                setInput({ ...input, message: "" });
-              }}
+              style={[
+                styles.modeButton,
+                mode === "chat" ? styles.activeMode : null,
+              ]}
+              onPress={() => setMode("chat")}
             >
-              <Feather name="send" size={24} color="white" />
+              <Feather
+                name="message-circle"
+                size={20}
+                color={mode === "chat" ? colors.white : colors.primaryBlue}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modeButton,
+                mode === "voice" ? styles.activeMode : null,
+              ]}
+              onPress={() => setMode("voice")}
+            >
+              <Feather
+                name="phone"
+                size={20}
+                color={mode === "voice" ? colors.white : colors.primaryBlue}
+              />
             </TouchableOpacity>
           </View>
-        </>
-      ) : (
-        <View style={styles.voiceContainer}>
-          <View style={styles.voiceContentContainer}>
-            <View style={styles.voiceIconContainer}>
-              <Feather name="phone" size={60} color={colors.primaryBlue} />
+        </View>{" "}
+        {mode === "chat" ? (
+          <>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.chatContainer}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {/* Message */}
+              {messages.map((message, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.messageBubble,
+                    message.role === "user"
+                      ? styles.userMessage
+                      : styles.botMessage,
+                  ]}
+                >
+                  <Markdown>{message.message}</Markdown>
+                </View>
+              ))}
+            </ScrollView>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.promptsContainer}
+              contentContainerStyle={styles.promptsContentContainer}
+            >
+              {templatePrompts.map((prompt, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.promptButton}
+                  onPress={() => handleTemplatePrompt(prompt)}
+                >
+                  <Text style={styles.promptText}>{prompt}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Input Field */}
+            <View style={styles.inputContainer}>
+              <Input
+                placeholder="Masukkan pesan disini..."
+                value={input.message}
+                onChangeText={(message) => setInput({ ...input, message })}
+                style={{ flex: 1 }}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  sendMessage(input);
+                  setInput({ ...input, message: "" });
+                }}
+              >
+                <Feather name="send" size={24} color="white" />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.voiceTitle}>Panggilan Suara</Text>
-            <Text style={styles.voiceDescription}>
-              Fitur ini memungkinkan Anda berbicara langsung dengan asisten
-              virtual kami. Tekan tombol untuk memulai panggilan.
-            </Text>
-            <TouchableOpacity style={styles.callButton}>
-              <Feather name="phone-call" size={28} color="white" />
-              <Text style={styles.callButtonText}>Mulai Panggilan</Text>
-            </TouchableOpacity>{" "}
+          </>
+        ) : (
+          <View style={styles.voiceContainer}>
+            <View style={styles.voiceContentContainer}>
+              <View style={styles.voiceIconContainer}>
+                <Feather name="phone" size={60} color={colors.primaryBlue} />
+              </View>
+              <Text style={styles.voiceTitle}>Panggilan Suara</Text>
+              <Text style={styles.voiceDescription}>
+                Fitur ini memungkinkan Anda berbicara langsung dengan asisten
+                virtual kami. Tekan tombol untuk memulai panggilan.
+              </Text>
+              <TouchableOpacity style={styles.callButton}>
+                <Feather name="phone-call" size={28} color="white" />
+                <Text style={styles.callButtonText}>Mulai Panggilan</Text>
+              </TouchableOpacity>{" "}
+            </View>
           </View>
-        </View>
-      )}
-    </SafeAreaView>
+        )}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

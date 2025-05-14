@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { Link, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -25,17 +34,20 @@ export default function Register() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("https://nuna.yogserver.web.id/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        "https://nuna.yogserver.web.id/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username,
+            email,
+            password,
+          }),
+        }
+      );
 
       const data = await response.json();
       if (!response.ok) {
@@ -47,7 +59,7 @@ export default function Register() {
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
 
       // Registration successful
-      router.push("/login")
+      router.push("/login");
     } catch (err: any) {
       setError(err.message || "An error occurred during registration");
       console.error("Registration error:", err);
@@ -66,30 +78,35 @@ export default function Register() {
         <ActivityIndicator size="large" color={colors.primaryBlue} />
       </View>
     );
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an account</Text>
-      <Text style={styles.subtitle}>Username</Text>
-      <Input placeholder="Name" value={username} onChangeText={setUsername} />
-      <Text style={styles.subtitle}>Email</Text>
-      <Input placeholder="Email" value={email} onChangeText={setEmail} />
-      <Text style={styles.subtitle}>Password</Text>{" "}
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button onPress={() => handleRegister()}>Register</Button>
-      <Text style={styles.text}>
-        Already have an account?{" "}
-        <Link href="/login" style={styles.link}>
-          Login
-        </Link>
-      </Text>
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Create an account</Text>
+        <Text style={styles.subtitle}>Username</Text>
+        <Input placeholder="Name" value={username} onChangeText={setUsername} />
+        <Text style={styles.subtitle}>Email</Text>
+        <Input placeholder="Email" value={email} onChangeText={setEmail} />
+        <Text style={styles.subtitle}>Password</Text>{" "}
+        <Input
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button onPress={() => handleRegister()}>Register</Button>
+        <Text style={styles.text}>
+          Already have an account?{" "}
+          <Link href="/login" style={styles.link}>
+            Login
+          </Link>
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -101,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundBlue,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: colors.backgroundBlue,
     justifyContent: "flex-end",
     padding: 16,

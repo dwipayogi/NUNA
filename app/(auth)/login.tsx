@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { Link, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -23,16 +32,19 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("https://nuna.yogserver.web.id/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        "https://nuna.yogserver.web.id/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -67,26 +79,32 @@ export default function Login() {
     );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login to an Account</Text>
-      <Text style={styles.subtitle}>Email</Text>
-      <Input placeholder="Email" value={email} onChangeText={setEmail} />
-      <Text style={styles.subtitle}>Password</Text>
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button onPress={() => handleLogin()}>Login</Button>
-      <Text style={styles.text}>
-        Don't have an account?{" "}
-        <Link href="/register" style={styles.link}>
-          Register
-        </Link>
-      </Text>
-    </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Login to an Account</Text>
+        <Text style={styles.subtitle}>Email</Text>
+        <Input placeholder="Email" value={email} onChangeText={setEmail} />
+        <Text style={styles.subtitle}>Password</Text>
+        <Input
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button onPress={() => handleLogin()}>Login</Button>
+        <Text style={styles.text}>
+          Don't have an account?{" "}
+          <Link href="/register" style={styles.link}>
+            Register
+          </Link>
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -98,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundBlue,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: colors.backgroundBlue,
     justifyContent: "flex-end",
     padding: 16,

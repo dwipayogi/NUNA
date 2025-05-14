@@ -9,6 +9,8 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -116,395 +118,401 @@ export default function JournalScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Catatan Harian</Text>
-      </View>
-      {/* Tabs for insights and journal entries */}
-      <View style={styles.tabsContainer}>
-        <ScrollableTab
-          tabs={["Semua Catatan", "Mood Analytics", "Insights", "Tips"]}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      </View>
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primaryBlue} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Catatan Harian</Text>
         </View>
-      ) : activeTab === "semua catatan" ? (
-        journals.length > 0 ? (
-          <FlatList
-            data={journals}
-            renderItem={renderJournalEntry}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.entriesList}
-            showsVerticalScrollIndicator={false}
-            refreshing={loading}
-            onRefresh={fetchJournals}
+        {/* Tabs for insights and journal entries */}
+        <View style={styles.tabsContainer}>
+          <ScrollableTab
+            tabs={["Semua Catatan", "Mood Analytics", "Insights", "Tips"]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              Belum ada catatan. Tambahkan catatan baru!
-            </Text>
+        </View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primaryBlue} />
           </View>
-        )
-      ) : activeTab === "mood analytics" ? (
-        <ScrollView contentContainerStyle={styles.insightsContainer}>
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Feather
-                name="bar-chart-2"
-                size={20}
-                color={colors.primaryBlue}
-              />
-              <Text style={styles.insightTitle}>Analisis Mood</Text>
-            </View>
-            <Text style={styles.insightDescription}>
-              Berdasarkan catatan Anda, mood yang paling sering Anda alami
-              adalah <Text style={styles.highlightText}>Produktif</Text> dan{" "}
-              <Text style={styles.highlightText}>Tenang</Text>.
-            </Text>
-
-            <View style={styles.moodDistribution}>
-              <View style={styles.moodBarContainer}>
-                <Text style={styles.moodBarLabel}>Senang</Text>
-                <View style={styles.moodBarWrapper}>
-                  <View
-                    style={[
-                      styles.moodBar,
-                      { width: "30%", backgroundColor: "#4ADE80" },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.moodBarPercentage}>30%</Text>
-              </View>
-
-              <View style={styles.moodBarContainer}>
-                <Text style={styles.moodBarLabel}>Tenang</Text>
-                <View style={styles.moodBarWrapper}>
-                  <View
-                    style={[
-                      styles.moodBar,
-                      { width: "25%", backgroundColor: "#60A5FA" },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.moodBarPercentage}>25%</Text>
-              </View>
-
-              <View style={styles.moodBarContainer}>
-                <Text style={styles.moodBarLabel}>Produktif</Text>
-                <View style={styles.moodBarWrapper}>
-                  <View
-                    style={[
-                      styles.moodBar,
-                      { width: "35%", backgroundColor: "#34D399" },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.moodBarPercentage}>35%</Text>
-              </View>
-
-              <View style={styles.moodBarContainer}>
-                <Text style={styles.moodBarLabel}>Stres</Text>
-                <View style={styles.moodBarWrapper}>
-                  <View
-                    style={[
-                      styles.moodBar,
-                      { width: "10%", backgroundColor: "#FB7185" },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.moodBarPercentage}>10%</Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      ) : activeTab === "insights" ? (
-        <ScrollView contentContainerStyle={styles.insightsContainer}>
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Feather name="zap" size={20} color={colors.primaryBlue} />
-              <Text style={styles.insightTitle}>Wawasan AI</Text>
-            </View>
-            <Text style={styles.insightDescription}>
-              Berdasarkan analisis dari catatan Anda, AI kami menemukan beberapa
-              pola:
-            </Text>
-
-            <View style={styles.insightList}>
-              <View style={styles.insightItem}>
-                <Feather
-                  name="check-circle"
-                  size={16}
-                  color={colors.primaryBlue}
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  Anda lebih produktif di pagi hari, terutama setelah kegiatan
-                  olahraga.
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="check-circle"
-                  size={16}
-                  color={colors.primaryBlue}
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  Mood Anda cenderung menurun setelah menghabiskan waktu di
-                  media sosial lebih dari 1 jam.
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="check-circle"
-                  size={16}
-                  color={colors.primaryBlue}
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  Ada korelasi positif antara waktu tidur yang cukup dan tingkat
-                  energi Anda.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Feather
-                name="trending-up"
-                size={20}
-                color={colors.primaryBlue}
-              />
-              <Text style={styles.insightTitle}>Perkembangan</Text>
-            </View>
-            <Text style={styles.insightDescription}>
-              Dalam 30 hari terakhir, terdapat peningkatan 20% dalam catatan
-              mood positif Anda. Ini menunjukkan perkembangan yang baik dalam
-              kesejahteraan mental Anda.
-            </Text>
-          </View>
-        </ScrollView>
-      ) : (
-        <ScrollView contentContainerStyle={styles.insightsContainer}>
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Feather name="coffee" size={20} color={colors.primaryBlue} />
-              <Text style={styles.insightTitle}>Tips Kesehatan Mental</Text>
-            </View>
-
-            <View style={styles.insightList}>
-              <View style={styles.insightItem}>
-                <Feather
-                  name="sun"
-                  size={16}
-                  color="#FACC15"
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  <Text style={styles.boldText}>Rutinitas Pagi</Text>: Mulailah
-                  hari dengan meditasi singkat 5 menit untuk menjernihkan
-                  pikiran.
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="activity"
-                  size={16}
-                  color="#10B981"
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  <Text style={styles.boldText}>Aktivitas Fisik</Text>: Tetapkan
-                  target 20 menit olahraga ringan setiap hari.
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="moon"
-                  size={16}
-                  color="#818CF8"
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  <Text style={styles.boldText}>Tidur Berkualitas</Text>:
-                  Kurangi penggunaan gawai 1 jam sebelum tidur untuk
-                  meningkatkan kualitas istirahat.
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="users"
-                  size={16}
-                  color="#F87171"
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  <Text style={styles.boldText}>Koneksi Sosial</Text>: Luangkan
-                  waktu untuk berinteraksi dengan orang-orang terdekat minimal
-                  30 menit sehari.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.insightCard}>
-            <View style={styles.insightHeader}>
-              <Feather name="book-open" size={20} color={colors.primaryBlue} />
-              <Text style={styles.insightTitle}>Rekomendasi Bacaan</Text>
-            </View>
-            <Text style={styles.insightDescription}>
-              Berdasarkan catatan Anda, berikut beberapa buku yang mungkin
-              membantu:
-            </Text>
-
-            <View style={styles.insightList}>
-              <View style={styles.insightItem}>
-                <Feather
-                  name="bookmark"
-                  size={16}
-                  color={colors.primaryBlue}
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  "Atomic Habits" oleh James Clear
-                </Text>
-              </View>
-
-              <View style={styles.insightItem}>
-                <Feather
-                  name="bookmark"
-                  size={16}
-                  color={colors.primaryBlue}
-                  style={styles.insightItemIcon}
-                />
-                <Text style={styles.insightItemText}>
-                  "Mindfulness in Plain English" oleh Bhante Gunaratana
-                </Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-      )}
-      <TouchableOpacity style={styles.newEntryButton} onPress={showModal}>
-        <Feather name="plus" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-      {showPromptModal && (
-        <Animated.View
-          style={[
-            styles.promptModalContainer,
-            {
-              opacity: promptModalAnim,
-              transform: [
-                {
-                  translateY: promptModalAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [300, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <View style={styles.promptModal}>
-            <View style={styles.promptModalHeader}>
-              <Text style={styles.promptModalTitle}>Buat catatan baru</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
-                <Feather name="x" size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>{" "}
-            <Text style={styles.promptModalSubtitle}>Judul</Text>
-            <Input
-              placeholder="Tulis catatan baru..."
-              value={title}
-              onChangeText={setTitle}
+        ) : activeTab === "semua catatan" ? (
+          journals.length > 0 ? (
+            <FlatList
+              data={journals}
+              renderItem={renderJournalEntry}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.entriesList}
+              showsVerticalScrollIndicator={false}
+              refreshing={loading}
+              onRefresh={fetchJournals}
             />
-            <Text style={styles.promptModalSubtitle}>Isi</Text>
-            <Input
-              placeholder="Ceritakan hari Anda..."
-              multiline={true}
-              numberOfLines={4}
-              style={styles.textArea}
-              value={content}
-              onChangeText={setContent}
-            />
-            <Text style={styles.promptModalSubtitle}>Mood</Text>{" "}
-            <View style={styles.moodSelector}>
-              {[
-                "Senang",
-                "Tenang",
-                "Produktif",
-                "Netral",
-                "Cemas",
-                "Stres",
-                "Sedih",
-              ].map((mood) => (
-                <TouchableOpacity
-                  key={mood}
-                  style={[
-                    styles.moodOption,
-                    selectedMood === mood && styles.selectedMoodOption,
-                  ]}
-                  onPress={() => setSelectedMood(mood)}
-                >
-                  <Text
-                    style={[
-                      styles.moodOptionText,
-                      selectedMood === mood && styles.selectedMoodOptionText,
-                    ]}
-                  >
-                    {mood}
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                Belum ada catatan. Tambahkan catatan baru!
+              </Text>
+            </View>
+          )
+        ) : activeTab === "mood analytics" ? (
+          <ScrollView contentContainerStyle={styles.insightsContainer}>
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Feather
+                  name="bar-chart-2"
+                  size={20}
+                  color={colors.primaryBlue}
+                />
+                <Text style={styles.insightTitle}>Analisis Mood</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Berdasarkan catatan Anda, mood yang paling sering Anda alami
+                adalah <Text style={styles.highlightText}>Produktif</Text> dan{" "}
+                <Text style={styles.highlightText}>Tenang</Text>.
+              </Text>
+
+              <View style={styles.moodDistribution}>
+                <View style={styles.moodBarContainer}>
+                  <Text style={styles.moodBarLabel}>Senang</Text>
+                  <View style={styles.moodBarWrapper}>
+                    <View
+                      style={[
+                        styles.moodBar,
+                        { width: "30%", backgroundColor: "#4ADE80" },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.moodBarPercentage}>30%</Text>
+                </View>
+
+                <View style={styles.moodBarContainer}>
+                  <Text style={styles.moodBarLabel}>Tenang</Text>
+                  <View style={styles.moodBarWrapper}>
+                    <View
+                      style={[
+                        styles.moodBar,
+                        { width: "25%", backgroundColor: "#60A5FA" },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.moodBarPercentage}>25%</Text>
+                </View>
+
+                <View style={styles.moodBarContainer}>
+                  <Text style={styles.moodBarLabel}>Produktif</Text>
+                  <View style={styles.moodBarWrapper}>
+                    <View
+                      style={[
+                        styles.moodBar,
+                        { width: "35%", backgroundColor: "#34D399" },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.moodBarPercentage}>35%</Text>
+                </View>
+
+                <View style={styles.moodBarContainer}>
+                  <Text style={styles.moodBarLabel}>Stres</Text>
+                  <View style={styles.moodBarWrapper}>
+                    <View
+                      style={[
+                        styles.moodBar,
+                        { width: "10%", backgroundColor: "#FB7185" },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.moodBarPercentage}>10%</Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        ) : activeTab === "insights" ? (
+          <ScrollView contentContainerStyle={styles.insightsContainer}>
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Feather name="zap" size={20} color={colors.primaryBlue} />
+                <Text style={styles.insightTitle}>Wawasan AI</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Berdasarkan analisis dari catatan Anda, AI kami menemukan
+                beberapa pola:
+              </Text>
+
+              <View style={styles.insightList}>
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="check-circle"
+                    size={16}
+                    color={colors.primaryBlue}
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    Anda lebih produktif di pagi hari, terutama setelah kegiatan
+                    olahraga.
                   </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="check-circle"
+                    size={16}
+                    color={colors.primaryBlue}
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    Mood Anda cenderung menurun setelah menghabiskan waktu di
+                    media sosial lebih dari 1 jam.
+                  </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="check-circle"
+                    size={16}
+                    color={colors.primaryBlue}
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    Ada korelasi positif antara waktu tidur yang cukup dan
+                    tingkat energi Anda.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Feather
+                  name="trending-up"
+                  size={20}
+                  color={colors.primaryBlue}
+                />
+                <Text style={styles.insightTitle}>Perkembangan</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Dalam 30 hari terakhir, terdapat peningkatan 20% dalam catatan
+                mood positif Anda. Ini menunjukkan perkembangan yang baik dalam
+                kesejahteraan mental Anda.
+              </Text>
+            </View>
+          </ScrollView>
+        ) : (
+          <ScrollView contentContainerStyle={styles.insightsContainer}>
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Feather name="coffee" size={20} color={colors.primaryBlue} />
+                <Text style={styles.insightTitle}>Tips Kesehatan Mental</Text>
+              </View>
+
+              <View style={styles.insightList}>
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="sun"
+                    size={16}
+                    color="#FACC15"
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    <Text style={styles.boldText}>Rutinitas Pagi</Text>:
+                    Mulailah hari dengan meditasi singkat 5 menit untuk
+                    menjernihkan pikiran.
+                  </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="activity"
+                    size={16}
+                    color="#10B981"
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    <Text style={styles.boldText}>Aktivitas Fisik</Text>:
+                    Tetapkan target 20 menit olahraga ringan setiap hari.
+                  </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="moon"
+                    size={16}
+                    color="#818CF8"
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    <Text style={styles.boldText}>Tidur Berkualitas</Text>:
+                    Kurangi penggunaan gawai 1 jam sebelum tidur untuk
+                    meningkatkan kualitas istirahat.
+                  </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="users"
+                    size={16}
+                    color="#F87171"
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    <Text style={styles.boldText}>Koneksi Sosial</Text>:
+                    Luangkan waktu untuk berinteraksi dengan orang-orang
+                    terdekat minimal 30 menit sehari.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.insightCard}>
+              <View style={styles.insightHeader}>
+                <Feather name="book-open" size={20} color={colors.primaryBlue} />
+                <Text style={styles.insightTitle}>Rekomendasi Bacaan</Text>
+              </View>
+              <Text style={styles.insightDescription}>
+                Berdasarkan catatan Anda, berikut beberapa buku yang mungkin
+                membantu:
+              </Text>
+
+              <View style={styles.insightList}>
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="bookmark"
+                    size={16}
+                    color={colors.primaryBlue}
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    "Atomic Habits" oleh James Clear
+                  </Text>
+                </View>
+
+                <View style={styles.insightItem}>
+                  <Feather
+                    name="bookmark"
+                    size={16}
+                    color={colors.primaryBlue}
+                    style={styles.insightItemIcon}
+                  />
+                  <Text style={styles.insightItemText}>
+                    "Mindfulness in Plain English" oleh Bhante Gunaratana
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        )}
+        <TouchableOpacity style={styles.newEntryButton} onPress={showModal}>
+          <Feather name="plus" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        {showPromptModal && (
+          <Animated.View
+            style={[
+              styles.promptModalContainer,
+              {
+                opacity: promptModalAnim,
+                transform: [
+                  {
+                    translateY: promptModalAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [300, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.promptModal}>
+              <View style={styles.promptModalHeader}>
+                <Text style={styles.promptModalTitle}>Buat catatan baru</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
+                  <Feather name="x" size={20} color="#64748B" />
                 </TouchableOpacity>
-              ))}
-            </View>{" "}
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={async () => {
-                if (!title.trim() || !content.trim() || !selectedMood) {
-                  return;
-                }
+              </View>{" "}
+              <Text style={styles.promptModalSubtitle}>Judul</Text>
+              <Input
+                placeholder="Tulis catatan baru..."
+                value={title}
+                onChangeText={setTitle}
+              />
+              <Text style={styles.promptModalSubtitle}>Isi</Text>
+              <Input
+                placeholder="Ceritakan hari Anda..."
+                multiline={true}
+                numberOfLines={4}
+                style={styles.textArea}
+                value={content}
+                onChangeText={setContent}
+              />
+              <Text style={styles.promptModalSubtitle}>Mood</Text>{" "}
+              <View style={styles.moodSelector}>
+                {[
+                  "Senang",
+                  "Tenang",
+                  "Produktif",
+                  "Netral",
+                  "Cemas",
+                  "Stres",
+                  "Sedih",
+                ].map((mood) => (
+                  <TouchableOpacity
+                    key={mood}
+                    style={[
+                      styles.moodOption,
+                      selectedMood === mood && styles.selectedMoodOption,
+                    ]}
+                    onPress={() => setSelectedMood(mood)}
+                  >
+                    <Text
+                      style={[
+                        styles.moodOptionText,
+                        selectedMood === mood && styles.selectedMoodOptionText,
+                      ]}
+                    >
+                      {mood}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>{" "}
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={async () => {
+                  if (!title.trim() || !content.trim() || !selectedMood) {
+                    return;
+                  }
 
-                try {
-                  setLoading(true);
-                  await createJournal({
-                    title,
-                    content,
-                    mood: selectedMood,
-                  });
+                  try {
+                    setLoading(true);
+                    await createJournal({
+                      title,
+                      content,
+                      mood: selectedMood,
+                    });
 
-                  // Reset form and hide modal
-                  setTitle("");
-                  setContent("");
-                  setSelectedMood(null);
-                  hideModal();
+                    // Reset form and hide modal
+                    setTitle("");
+                    setContent("");
+                    setSelectedMood(null);
+                    hideModal();
 
-                  // Refresh journals list
-                  fetchJournals();
-                } catch (err: any) {
-                  console.error("Error creating journal:", err);
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
-              <Text style={styles.submitButtonText}>Simpan</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      )}
-    </SafeAreaView>
+                    // Refresh journals list
+                    fetchJournals();
+                  } catch (err: any) {
+                    console.error("Error creating journal:", err);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                <Text style={styles.submitButtonText}>Simpan</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        )}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

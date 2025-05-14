@@ -8,6 +8,8 @@ import {
   Animated,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -165,136 +167,142 @@ export default function JournalDetailScreen() {
     );
   }
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Detail Catatan</Text>
-        <TouchableOpacity style={styles.editButton} onPress={showModal}>
-          <Feather name="edit-2" size={20} color={colors.primaryBlue} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        style={styles.contentContainer}
-        contentContainerStyle={styles.contentInner}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.dateContainer}>
-          <Text style={styles.date}>{formatDate(journal.createdAt)}</Text>
-        </View>
-
-        <Text style={styles.title}>{journal.title}</Text>
-
-        <View
-          style={[
-            styles.moodTag,
-            { backgroundColor: `${getMoodColor(journal.mood)}20` },
-          ]}
-        >
-          <Text
-            style={[styles.moodText, { color: getMoodColor(journal.mood) }]}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
           >
-            {journal.mood}
-          </Text>
+            <Feather name="arrow-left" size={24} color={colors.primaryBlue} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Detail Catatan</Text>
+          <TouchableOpacity style={styles.editButton} onPress={showModal}>
+            <Feather name="edit-2" size={20} color={colors.primaryBlue} />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.contentBox}>
-          <Text style={styles.content}>{journal.content}</Text>
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Feather name="trash-2" size={20} color="#EF4444" />
-          <Text style={styles.deleteText}>Hapus</Text>
-        </TouchableOpacity>
-      </View>
-
-      {showEditModal && (
-        <Animated.View
-          style={[
-            styles.editModalContainer,
-            {
-              opacity: editModalAnim,
-              transform: [
-                {
-                  translateY: editModalAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [300, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
+        <ScrollView
+          style={styles.contentContainer}
+          contentContainerStyle={styles.contentInner}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.editModal}>
-            <View style={styles.editModalHeader}>
-              <Text style={styles.editModalTitle}>Edit Catatan</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
-                <Feather name="x" size={20} color="#64748B" />
+          <View style={styles.dateContainer}>
+            <Text style={styles.date}>{formatDate(journal.createdAt)}</Text>
+          </View>
+
+          <Text style={styles.title}>{journal.title}</Text>
+
+          <View
+            style={[
+              styles.moodTag,
+              { backgroundColor: `${getMoodColor(journal.mood)}20` },
+            ]}
+          >
+            <Text
+              style={[styles.moodText, { color: getMoodColor(journal.mood) }]}
+            >
+              {journal.mood}
+            </Text>
+          </View>
+
+          <View style={styles.contentBox}>
+            <Text style={styles.content}>{journal.content}</Text>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+            <Feather name="trash-2" size={20} color="#EF4444" />
+            <Text style={styles.deleteText}>Hapus</Text>
+          </TouchableOpacity>
+        </View>
+
+        {showEditModal && (
+          <Animated.View
+            style={[
+              styles.editModalContainer,
+              {
+                opacity: editModalAnim,
+                transform: [
+                  {
+                    translateY: editModalAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [300, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.editModal}>
+              <View style={styles.editModalHeader}>
+                <Text style={styles.editModalTitle}>Edit Catatan</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
+                  <Feather name="x" size={20} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.editModalSubtitle}>Judul</Text>
+              <Input
+                placeholder="Judul catatan"
+                value={editTitle}
+                onChangeText={setEditTitle}
+              />
+              <Text style={styles.editModalSubtitle}>Isi</Text>
+              <Input
+                placeholder="Ceritakan hari Anda..."
+                multiline={true}
+                numberOfLines={4}
+                style={styles.textArea}
+                value={editContent}
+                onChangeText={setEditContent}
+              />
+              <Text style={styles.editModalSubtitle}>Mood</Text>
+              <View style={styles.moodSelector}>
+                {[
+                  "Senang",
+                  "Tenang",
+                  "Produktif",
+                  "Netral",
+                  "Cemas",
+                  "Stres",
+                  "Sedih",
+                ].map((mood) => (
+                  <TouchableOpacity
+                    key={mood}
+                    style={[
+                      styles.moodOption,
+                      selectedMood === mood && styles.selectedMoodOption,
+                    ]}
+                    onPress={() => setSelectedMood(mood)}
+                  >
+                    <Text
+                      style={[
+                        styles.moodOptionText,
+                        selectedMood === mood && styles.selectedMoodOptionText,
+                      ]}
+                    >
+                      {mood}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>{" "}
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSaveEdit}
+              >
+                <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.editModalSubtitle}>Judul</Text>
-            <Input
-              placeholder="Judul catatan"
-              value={editTitle}
-              onChangeText={setEditTitle}
-            />
-            <Text style={styles.editModalSubtitle}>Isi</Text>
-            <Input
-              placeholder="Ceritakan hari Anda..."
-              multiline={true}
-              numberOfLines={4}
-              style={styles.textArea}
-              value={editContent}
-              onChangeText={setEditContent}
-            />
-            <Text style={styles.editModalSubtitle}>Mood</Text>
-            <View style={styles.moodSelector}>
-              {[
-                "Senang",
-                "Tenang",
-                "Produktif",
-                "Netral",
-                "Cemas",
-                "Stres",
-                "Sedih",
-              ].map((mood) => (
-                <TouchableOpacity
-                  key={mood}
-                  style={[
-                    styles.moodOption,
-                    selectedMood === mood && styles.selectedMoodOption,
-                  ]}
-                  onPress={() => setSelectedMood(mood)}
-                >
-                  <Text
-                    style={[
-                      styles.moodOptionText,
-                      selectedMood === mood && styles.selectedMoodOptionText,
-                    ]}
-                  >
-                    {mood}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>{" "}
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSaveEdit}
-            >
-              <Text style={styles.submitButtonText}>Simpan Perubahan</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      )}
-    </SafeAreaView>
+          </Animated.View>
+        )}
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
