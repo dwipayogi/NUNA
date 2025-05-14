@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Feather from "@expo/vector-icons/Feather";
@@ -72,6 +73,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -181,6 +183,18 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Emergency Contact Button */}
+          <TouchableOpacity
+            style={styles.emergencyContactButton}
+            onPress={() => router.push("/emergency-contacts")}
+          >
+            <View style={styles.emergencyButtonContent}>
+              <Feather name="phone-call" size={24} color="#FFFFFF" />
+              <Text style={styles.emergencyButtonText}>Kontak Darurat</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.spacer} />
@@ -371,5 +385,29 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 40,
+  },
+  emergencyContactButton: {
+    backgroundColor: "#EF4444", // Red color for emergency
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  emergencyButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  emergencyButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginLeft: 12,
   },
 });

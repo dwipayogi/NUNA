@@ -190,7 +190,7 @@ export default function CommunityScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Displays the header with the title and a filter button. */}
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Komunitas</Text>
         <TouchableOpacity style={styles.filterButton}>

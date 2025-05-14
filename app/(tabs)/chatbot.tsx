@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   Text,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Markdown from "react-native-markdown-display";
-import { Header } from "@/components/header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StatusBar } from "expo-status-bar";
 
 import { Feather } from "@expo/vector-icons";
 
@@ -35,7 +36,7 @@ export default function Chatbot() {
     const token = await AsyncStorage.getItem("token");
 
     setMessages((prevMessages) => [...prevMessages, { role: "user", message }]);
-    const response = await fetch("http://localhost:3000/api/chat", {
+    const response = await fetch("https://nuna.yogserver.web.id/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +69,8 @@ export default function Chatbot() {
     }, 100);
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
       <View style={styles.headerContainer}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Chatbot</Text>
@@ -176,11 +178,11 @@ export default function Chatbot() {
             <TouchableOpacity style={styles.callButton}>
               <Feather name="phone-call" size={28} color="white" />
               <Text style={styles.callButtonText}>Mulai Panggilan</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>{" "}
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -188,7 +190,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundBlue,
-    padding: 20,
+    paddingHorizontal: 20,
   },
   headerContainer: {
     flexDirection: "row",
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-    header: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
   },
   botMessage: {
-    backgroundColor: colors.grayThree,
+    backgroundColor: "#F1F5F9",
     alignSelf: "flex-start",
     maxWidth: "80%",
   },

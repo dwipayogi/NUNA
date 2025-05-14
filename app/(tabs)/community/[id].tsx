@@ -1,24 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
   TextInput,
-  Animated,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { colors } from "@/constants/colors";
 import {
   getPostById,
@@ -116,7 +111,7 @@ export default function CommunityDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}

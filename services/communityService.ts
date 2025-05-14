@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://localhost:3000"; // Replace with your API URL
+const API_URL = "https://nuna.yogserver.web.id"; // Replace with your API URL
 
 // Interfaces for community data
 export interface User {

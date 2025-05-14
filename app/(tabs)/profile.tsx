@@ -160,7 +160,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
       {/* Header */}{" "}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profil</Text>

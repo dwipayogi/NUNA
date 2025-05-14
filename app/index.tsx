@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, Image } from "react-native";
+import { StatusBar } from "expo-status-bar";
 
 import { colors } from "@/constants/colors";
 import { Link } from "expo-router";
@@ -7,6 +8,7 @@ import { Button } from "@/components/button";
 export default function App() {
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" />
       <View style={styles.topContent}>
         <Image
           source={require("../assets/images/logo.png")}

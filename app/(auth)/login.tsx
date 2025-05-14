@@ -23,7 +23,7 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch("https://nuna.yogserver.web.id/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

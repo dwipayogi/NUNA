@@ -92,7 +92,7 @@ export default function MeditationDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}

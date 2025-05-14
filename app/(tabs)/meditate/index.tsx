@@ -74,7 +74,7 @@ export default function MeditateScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meditasi</Text>
         <TouchableOpacity style={styles.menuButton}>
