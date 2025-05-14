@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Animated,
   FlatList,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -368,7 +367,11 @@ export default function JournalScreen() {
 
             <View style={styles.insightCard}>
               <View style={styles.insightHeader}>
-                <Feather name="book-open" size={20} color={colors.primaryBlue} />
+                <Feather
+                  name="book-open"
+                  size={20}
+                  color={colors.primaryBlue}
+                />
                 <Text style={styles.insightTitle}>Rekomendasi Bacaan</Text>
               </View>
               <Text style={styles.insightDescription}>
@@ -427,7 +430,10 @@ export default function JournalScreen() {
             <View style={styles.promptModal}>
               <View style={styles.promptModalHeader}>
                 <Text style={styles.promptModalTitle}>Buat catatan baru</Text>
-                <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={hideModal}
+                >
                   <Feather name="x" size={20} color="#64748B" />
                 </TouchableOpacity>
               </View>{" "}

@@ -7,7 +7,6 @@ import {
   ScrollView,
   Animated,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -243,7 +242,10 @@ export default function JournalDetailScreen() {
             <View style={styles.editModal}>
               <View style={styles.editModalHeader}>
                 <Text style={styles.editModalTitle}>Edit Catatan</Text>
-                <TouchableOpacity style={styles.closeButton} onPress={hideModal}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={hideModal}
+                >
                   <Feather name="x" size={20} color="#64748B" />
                 </TouchableOpacity>
               </View>
