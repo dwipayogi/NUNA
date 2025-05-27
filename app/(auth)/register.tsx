@@ -26,7 +26,7 @@ export default function Register() {
 
   async function handleRegister() {
     if (!username || !email || !password) {
-      setError("Please fill in all fields");
+      setError("Silakan isi semua kolom");
       return;
     }
 
@@ -34,38 +34,35 @@ export default function Register() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        "http://localhost:3000/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            email,
-            password,
-          }),
-        }
-      );
+      const response = await fetch("https://nuna.yogserver.web.id/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
+      });
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
+        throw new Error(data.message || "Pendaftaran gagal");
       }
 
-      // Store token and user data
+      // Menyimpan token dan data pengguna
       await AsyncStorage.setItem("token", data.token);
       await AsyncStorage.setItem("user", JSON.stringify(data.user));
 
-      // Registration successful
+      // Pendaftaran berhasil
       router.push("/login");
     } catch (err: any) {
-      setError(err.message || "An error occurred during registration");
-      console.error("Registration error:", err);
+      setError(err.message || "Terjadi kesalahan saat pendaftaran");
+      console.error("Kesalahan pendaftaran:", err);
       Alert.alert(
-        "Registration Failed",
-        err.message || "An error occurred during registration"
+        "Pendaftaran Gagal",
+        err.message || "Terjadi kesalahan saat pendaftaran"
       );
     } finally {
       setLoading(false);
@@ -85,24 +82,24 @@ export default function Register() {
       keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Create an account</Text>
-        <Text style={styles.subtitle}>Username</Text>
-        <Input placeholder="Name" value={username} onChangeText={setUsername} />
+        <Text style={styles.title}>Buat Akun</Text>
+        <Text style={styles.subtitle}>Nama Pengguna</Text>
+        <Input placeholder="Nama" value={username} onChangeText={setUsername} />
         <Text style={styles.subtitle}>Email</Text>
         <Input placeholder="Email" value={email} onChangeText={setEmail} />
-        <Text style={styles.subtitle}>Password</Text>{" "}
+        <Text style={styles.subtitle}>Kata Sandi</Text>{" "}
         <Input
-          placeholder="Password"
+          placeholder="Kata Sandi"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button onPress={() => handleRegister()}>Register</Button>
+        <Button onPress={() => handleRegister()}>Daftar</Button>
         <Text style={styles.text}>
-          Already have an account?{" "}
+          Sudah punya akun?{" "}
           <Link href="/login" style={styles.link}>
-            Login
+            Masuk
           </Link>
         </Text>
       </ScrollView>

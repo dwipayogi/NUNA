@@ -19,7 +19,7 @@ export default function App() {
       </View>
       <View style={styles.bottomContent}>
         <Link href="/register" asChild>
-          <Button>Register</Button>
+          <Button>Masuk</Button>
         </Link>
       </View>
     </View>

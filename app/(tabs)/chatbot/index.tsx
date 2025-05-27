@@ -40,7 +40,7 @@ export default function Chatbot() {
     const token = await AsyncStorage.getItem("token");
 
     setMessages((prevMessages) => [...prevMessages, { role: "user", message }]);
-    const response = await fetch("http://localhost:3000/api/chat", {
+    const response = await fetch("https://nuna.yogserver.web.id/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

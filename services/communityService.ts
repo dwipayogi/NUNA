@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://localhost:3000"; // Replace with your API URL
+const API_URL = "https://nuna.yogserver.web.id";
 
 // Interfaces for community data
 export interface User {
@@ -224,7 +224,7 @@ export const likePost = async (postId: string) => {
   const token = await AsyncStorage.getItem("token");
 
   const response = await fetch(
-    `http://localhost:3000/api/posts/${postId}/like`,
+    `${API_URL}/api/posts/${postId}/like`,
     {
       method: "POST",
       headers: {
@@ -247,7 +247,7 @@ export const unlikePost = async (postId: string) => {
   const token = await AsyncStorage.getItem("token");
 
   const response = await fetch(
-    `http://localhost:3000/api/posts/${postId}/unlike`,
+    `${API_URL}/api/posts/${postId}/unlike`,
     {
       method: "POST",
       headers: {

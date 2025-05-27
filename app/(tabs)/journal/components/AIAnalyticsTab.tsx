@@ -1,6 +1,5 @@
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
-import { colors } from "@/constants/colors";
 import {
   MoodAnalyticsSection,
   InsightPatternSection,

@@ -137,7 +137,7 @@ export default function JournalScreen() {
             renderJournalEntry={renderJournalEntry}
           />
         );
-      case "ai analytics":
+      case "analisis ai":
         return <AIAnalyticsTab />;
       default:
         return (
@@ -165,7 +165,7 @@ export default function JournalScreen() {
         {/* Tabs for insights and journal entries */}{" "}
         <View style={styles.tabsContainer}>
           <ScrollableTab
-            tabs={["Semua Catatan", "AI Analytics"]}
+            tabs={["Semua Catatan", "Analisis AI"]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
