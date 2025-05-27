@@ -77,9 +77,6 @@ export default function MeditateScreen() {
       <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meditasi</Text>
-        <TouchableOpacity style={styles.menuButton}>
-          <Feather name="menu" size={20} color="#64748B" />
-        </TouchableOpacity>
       </View>
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -267,14 +264,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.primaryBlue,
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F1F5F9",
-    justifyContent: "center",
-    alignItems: "center",
   },
   tabContainer: {
     flexDirection: "row",

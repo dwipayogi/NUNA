@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -23,6 +25,8 @@ import {
   getCurrentUser,
   likePost,
   unlikePost,
+  updatePost,
+  deletePost,
 } from "@/services/communityService";
 
 export default function CommunityDetailScreen() {
@@ -36,6 +40,14 @@ export default function CommunityDetailScreen() {
   const [error, setError] = useState("");
   const [user, setUser] = useState<any>(null);
   const [submittingComment, setSubmittingComment] = useState(false);
+  // New state variables for edit and delete functionality
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [editTagInput, setEditTagInput] = useState("");
+  const [isPostCreator, setIsPostCreator] = useState(false);
 
   // Fetch post details and current user when component mounts
   useEffect(() => {
@@ -61,12 +73,18 @@ export default function CommunityDetailScreen() {
       setLoading(false);
     }
   };
-
   // Function to get current user
   const fetchCurrentUser = async () => {
     try {
       const userData = await getCurrentUser();
       setUser(userData);
+      
+      // Check if current user is the post creator
+      if (userData && post && userData.id === post.userId) {
+        setIsPostCreator(true);
+      } else {
+        setIsPostCreator(false);
+      }
     } catch (err) {
       console.error("Failed to get user data:", err);
     }
@@ -87,8 +105,7 @@ export default function CommunityDetailScreen() {
     } catch (error) {
       console.error("Error toggling like:", error);
     }
-  };
-  const handleComment = async () => {
+  };  const handleComment = async () => {
     if (commentText.trim().length === 0 || !user) return;
 
     try {
@@ -105,6 +122,47 @@ export default function CommunityDetailScreen() {
       console.error("Error posting comment:", err);
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  // New functions for edit and delete functionality
+  const openEditModal = () => {
+    if (post) {
+      setEditTitle(post.title);
+      setEditContent(post.content);
+      setEditTags(post.tags || []);
+    }
+    setIsEditModalVisible(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalVisible(false);
+  };
+
+  const handleDeletePost = async () => {
+    setIsDeleting(true);
+    try {
+      await deletePost(id as string);
+      router.back();
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    if (!id) return;
+
+    try {
+      await updatePost(id as string, {
+        title: editTitle,
+        content: editContent,
+        tags: editTags,
+      });
+      setIsEditModalVisible(false);
+      fetchPostDetails();
+    } catch (err) {
+      console.error("Error updating post:", err);
     }
   };
 
@@ -186,14 +244,13 @@ export default function CommunityDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           {" "}
-          <View style={styles.postCard}>
-            <View style={styles.authorContainer}>
+          <View style={styles.postCard}>            <View style={styles.authorContainer}>
               <View style={styles.avatarContainer}>
                 <Text style={styles.avatarText}>
                   {(post.user?.username || "A").charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <View>
+              <View style={{flex: 1}}>
                 <Text style={styles.authorName}>
                   {post.user?.username || "Anonymous"}
                 </Text>
@@ -201,6 +258,23 @@ export default function CommunityDetailScreen() {
                   {formatTimeAgo(post.createdAt)}
                 </Text>
               </View>
+              
+              {isPostCreator && (
+                <View style={styles.postControls}>
+                  <TouchableOpacity 
+                    style={styles.postControlButton}
+                    onPress={openEditModal}
+                  >
+                    <Feather name="edit-2" size={16} color={colors.primaryBlue} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.postControlButton}
+                    onPress={() => setIsDeleting(true)}
+                  >
+                    <Feather name="trash-2" size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
             <Text style={styles.postTitle}>{post.title}</Text>
             <Text style={styles.postContent}>{post.content}</Text>{" "}
@@ -328,6 +402,118 @@ export default function CommunityDetailScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Edit Post Modal */}
+      <Modal
+        visible={isEditModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={closeEditModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Post</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Judul"
+              value={editTitle}
+              onChangeText={setEditTitle}
+            />
+            <TextInput
+              style={[styles.modalInput, { height: 100 }]}
+              placeholder="Konten"
+              value={editContent}
+              onChangeText={setEditContent}
+              multiline
+            />
+            <View style={styles.modalTagsContainer}>
+              <TextInput
+                style={styles.tagInput}
+                placeholder="Tambah tag"
+                value={editTagInput}
+                onChangeText={setEditTagInput}
+              />
+              <TouchableOpacity
+                style={styles.addTagButton}
+                onPress={() => {
+                  if (editTagInput.trim().length > 0) {
+                    setEditTags([...editTags, editTagInput.trim()]);
+                    setEditTagInput("");
+                  }
+                }}
+              >
+                <Feather name="plus" size={16} color={colors.white} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.selectedTagsContainer}>
+              {editTags.map((tag, index) => (
+                <View key={index} style={styles.selectedTag}>
+                  <Text style={styles.selectedTagText}>{tag}</Text>
+                  <TouchableOpacity
+                    style={styles.removeTagButton}
+                    onPress={() =>
+                      setEditTags(editTags.filter((t) => t !== tag))
+                    }
+                  >
+                    <Feather name="x" size={14} color={colors.grayTwo} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={closeEditModal}
+              >
+                <Text style={styles.modalButtonText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: colors.primaryBlue },
+                ]}
+                onPress={handleUpdatePost}
+              >
+                <Text style={styles.modalButtonText}>Simpan</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={isDeleting}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsDeleting(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Konfirmasi Hapus</Text>
+            <Text style={styles.modalMessage}>
+              Apakah Anda yakin ingin menghapus pos ini?
+            </Text>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setIsDeleting(false)}
+              >
+                <Text style={styles.modalButtonText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: colors.primaryBlue },
+                ]}
+                onPress={handleDeletePost}
+              >
+                <Text style={styles.modalButtonText}>Hapus</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -607,5 +793,120 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.grayTwo,
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.black,
+    marginBottom: 16,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: colors.grayTwo,
+    marginBottom: 24,
+  },
+  modalInput: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  modalButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    flex: 1,
+    backgroundColor: colors.primaryBlue,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginHorizontal: 8,
+  },
+  modalButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalTagsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  tagInput: {
+    flex: 1,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    marginRight: 8,
+  },
+  addTagButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primaryBlue,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectedTagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 16,
+  },
+  selectedTag: {
+    backgroundColor: colors.backgroundBlue,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginRight: 8,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  selectedTagText: {
+    fontSize: 12,
+    color: colors.grayTwo,
+    marginRight: 4,
+  },  removeTagButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.white,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  postControls: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  postControlButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
   },
 });

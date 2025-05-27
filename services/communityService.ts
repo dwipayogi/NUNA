@@ -264,3 +264,68 @@ export const unlikePost = async (postId: string) => {
 
   return await response.json();
 };
+
+// Function to update a post
+export const updatePost = async (
+  postId: string,
+  postData: { title: string; content: string; tags: string[] }
+): Promise<Post> => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch(`${API_URL}/api/posts/${postId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(postData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to update post");
+    }
+
+    const updatedPost = await response.json();
+    return updatedPost;
+  } catch (error) {
+    console.error("Error updating post:", error);
+    throw error;
+  }
+};
+
+// Function to delete a post
+export const deletePost = async (
+  postId: string
+): Promise<{ message: string }> => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch(`${API_URL}/api/posts/${postId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to delete post");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+};

@@ -754,3 +754,185 @@
   - `401 Unauthorized`: Not authorized
   - `404 Not Found`: No journal entries found for recommendations
   - `500 Server Error`: Server error
+
+---
+
+### Mood History (All Protected)
+
+#### Create Mood Entry
+
+- **Endpoint:** `POST /api/mood-history`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Creates a new mood entry and automatically ends any active mood entry
+- **Request Body:**
+  ```json
+  {
+    "mood": "Hebat"
+  }
+  ```
+- **Response (201 Created):**
+  ```json
+  {
+    "id": "uuid-string",
+    "userId": "user-uuid-string",
+    "mood": "Hebat",
+    "startTime": "2023-06-15T08:30:00Z",
+    "endTime": null,
+    "durationMinutes": null,
+    "createdAt": "2023-06-15T08:30:00Z",
+    "updatedAt": "2023-06-15T08:30:00Z"
+  }
+  ```
+- **Note:** When creating a new mood entry, any previous active mood entry will be automatically ended and its duration calculated
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `500 Server Error`: Server error
+
+#### Get Active Mood
+
+- **Endpoint:** `GET /api/mood-history/active`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Gets the user's currently active mood (if any)
+- **Response (200 OK):**
+  ```json
+  {
+    "id": "uuid-string",
+    "userId": "user-uuid-string",
+    "mood": "Hebat",
+    "startTime": "2023-06-15T08:30:00Z",
+    "endTime": null,
+    "durationMinutes": null,
+    "createdAt": "2023-06-15T08:30:00Z",
+    "updatedAt": "2023-06-15T08:30:00Z"
+  }
+  ```
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `404 Not Found`: No active mood found
+  - `500 Server Error`: Server error
+
+#### Update Mood Entry
+
+- **Endpoint:** `PUT /api/mood-history/:id`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Updates a mood entry, typically to end it and calculate duration
+- **Request Body:**
+  ```json
+  {
+    "endTime": "2023-06-15T12:30:00Z"
+  }
+  ```
+- **Response (200 OK):**
+  ```json
+  {
+    "id": "uuid-string",
+    "userId": "user-uuid-string",
+    "mood": "Hebat",
+    "startTime": "2023-06-15T08:30:00Z",
+    "endTime": "2023-06-15T12:30:00Z",
+    "durationMinutes": 240,
+    "createdAt": "2023-06-15T08:30:00Z",
+    "updatedAt": "2023-06-15T12:30:00Z"
+  }
+  ```
+- **Note:** Duration in minutes is automatically calculated based on startTime and endTime
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `404 Not Found`: Mood entry not found
+  - `500 Server Error`: Server error
+
+#### Get Mood History
+
+- **Endpoint:** `GET /api/mood-history`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Gets the user's mood history
+- **Query Parameters:**
+  - `limit` (optional): Number of records to return
+  - `offset` (optional): Number of records to skip for pagination
+- **Response (200 OK):**
+  ```json
+  [
+    {
+      "id": "uuid-string-1",
+      "userId": "user-uuid-string",
+      "mood": "Hebat",
+      "startTime": "2023-06-15T08:30:00Z",
+      "endTime": "2023-06-15T12:30:00Z",
+      "durationMinutes": 240,
+      "createdAt": "2023-06-15T08:30:00Z",
+      "updatedAt": "2023-06-15T12:30:00Z"
+    },
+    {
+      "id": "uuid-string-2",
+      "userId": "user-uuid-string",
+      "mood": "Baik",
+      "startTime": "2023-06-15T12:30:00Z",
+      "endTime": "2023-06-15T18:00:00Z",
+      "durationMinutes": 330,
+      "createdAt": "2023-06-15T12:30:00Z",
+      "updatedAt": "2023-06-15T18:00:00Z"
+    }
+  ]
+  ```
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `500 Server Error`: Server error
+
+#### Get Mood Statistics
+
+- **Endpoint:** `GET /api/mood-history/stats`
+- **Access:** Protected
+- **Headers:** `Authorization: Bearer YOUR_TOKEN`
+- **Description:** Gets statistics about the user's mood patterns over a period
+- **Query Parameters:**
+  - `days` (optional): Number of days to analyze (default: 7)
+- **Response (200 OK):**
+  ```json
+  {
+    "period": "7 days",
+    "totalMinutes": 1560,
+    "stats": {
+      "Hebat": {
+        "totalMinutes": 420,
+        "percentage": 26.92,
+        "count": 3
+      },
+      "Baik": {
+        "totalMinutes": 680,
+        "percentage": 43.59,
+        "count": 5
+      },
+      "Oke": {
+        "totalMinutes": 250,
+        "percentage": 16.03,
+        "count": 4
+      },
+      "Buruk": {
+        "totalMinutes": 210,
+        "percentage": 13.46,
+        "count": 2
+      }
+    },
+    "history": [
+      {
+        "id": "uuid-string-1",
+        "userId": "user-uuid-string",
+        "mood": "Hebat",
+        "startTime": "2023-06-10T08:30:00Z",
+        "endTime": "2023-06-10T12:30:00Z",
+        "durationMinutes": 240,
+        "createdAt": "2023-06-10T08:30:00Z",
+        "updatedAt": "2023-06-10T12:30:00Z"
+      }
+      // More history entries...
+    ]
+  }
+  ```
+- **Note:** Provides detailed statistics about how much time the user spent in each mood state
+- **Error Responses:**
+  - `401 Unauthorized`: Not authorized
+  - `500 Server Error`: Server error

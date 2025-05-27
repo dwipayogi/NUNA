@@ -31,19 +31,57 @@ export default function HomeScreen() {
 
     setGreeting(getGreeting());
 
-    // Fetch username and mood from AsyncStorage
+    // Fetch username, token and active mood
     const getUserData = async () => {
       try {
+        // Get user data from AsyncStorage
         const userDataString = await AsyncStorage.getItem("user");
         if (userDataString) {
           const userData = JSON.parse(userDataString);
           setUsername(userData.username || "");
         }
 
-        // Get saved mood
-        const savedMood = await AsyncStorage.getItem("currentMood");
-        if (savedMood) {
-          setSelectedMood(savedMood);
+        // Get token from storage
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          console.error("No auth token found");
+          return;
+        }
+
+        // Fetch active mood from API
+        try {
+          const response = await fetch(
+            "https://nuna.yogserver.web.id/api/mood-history/active",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const activeMood = await response.json();
+            if (activeMood && activeMood.mood) {
+              setSelectedMood(activeMood.mood);
+              await AsyncStorage.setItem("currentMood", activeMood.mood);
+            }
+          } else {
+            // If no active mood or error, try to get from local storage
+            const savedMood = await AsyncStorage.getItem("currentMood");
+            if (savedMood) {
+              setSelectedMood(savedMood);
+            }
+          }
+        } catch (apiError) {
+          console.error("Error fetching active mood:", apiError);
+
+          // Fallback to local storage
+          const savedMood = await AsyncStorage.getItem("currentMood");
+          if (savedMood) {
+            setSelectedMood(savedMood);
+          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -53,19 +91,31 @@ export default function HomeScreen() {
     getUserData();
   }, []);
 
-  // Save mood to AsyncStorage
   const saveMood = async (mood: string) => {
     try {
+      const previousMood = selectedMood;
       setSelectedMood(mood);
       await AsyncStorage.setItem("currentMood", mood);
 
-      // Save mood history with timestamp
-      const timestamp = new Date().toISOString();
-      const moodEntry = { mood, timestamp };
-      const moodHistoryString = await AsyncStorage.getItem("moodHistory");
-      let moodHistory = moodHistoryString ? JSON.parse(moodHistoryString) : [];
-      moodHistory.push(moodEntry);
-      await AsyncStorage.setItem("moodHistory", JSON.stringify(moodHistory));
+      // Get token from storage
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        console.error("No auth token found");
+        return;
+      }
+
+      // Creating a new mood entry will automatically end any active mood entry
+      // according to the API documentation
+      await fetch("https://nuna.yogserver.web.id/api/mood-history", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          mood,
+        }),
+      });
     } catch (error) {
       console.error("Error saving mood:", error);
     }

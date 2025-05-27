@@ -23,6 +23,8 @@ import {
   unlikePost,
 } from "@/services/communityService";
 
+import { ScrollableTab } from "@/components/ScrollableTab";
+
 // This screen shows a list of community posts where users can read and interact with discussions.
 // Users can search for posts, filter by categories, and create new posts.
 
@@ -192,9 +194,6 @@ export default function CommunityScreen() {
       <StatusBar style="dark" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Komunitas</Text>
-        <TouchableOpacity style={styles.filterButton}>
-          <Feather name="filter" size={20} color="#64748B" />
-        </TouchableOpacity>
       </View>
 
       {/* Search bar for finding posts. */}
@@ -282,40 +281,6 @@ export default function CommunityScreen() {
   );
 }
 
-// ScrollableTab component
-function ScrollableTab({
-  tabs,
-  activeTab,
-  onTabChange,
-}: {
-  tabs: string[];
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}) {
-  return (
-    <FlatList
-      data={tabs}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      keyExtractor={(item) => item}
-      renderItem={({ item }) => {
-        const isActive = activeTab === item.toLowerCase();
-        return (
-          <TouchableOpacity
-            style={[styles.tab, isActive && styles.activeTab]}
-            onPress={() => onTabChange(item.toLowerCase())}
-          >
-            <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-              {item}
-            </Text>
-          </TouchableOpacity>
-        );
-      }}
-      contentContainerStyle={styles.tabsContent}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -332,14 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: colors.primaryBlue,
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.backgroundBlue,
-    justifyContent: "center",
-    alignItems: "center",
   },
   searchContainer: {
     flexDirection: "row",
@@ -362,25 +319,6 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     marginBottom: 16,
-  },
-  tabsContent: {
-    paddingHorizontal: 12,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginHorizontal: 4,
-  },
-  activeTab: {
-    backgroundColor: colors.primaryBlue,
-  },
-  tabText: {
-    fontSize: 14,
-    color: colors.primaryBlue,
-  },
-  activeTabText: {
-    color: colors.white,
   },
   postsList: {
     paddingHorizontal: 16,
