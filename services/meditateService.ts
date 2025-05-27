@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "https://nuna.yogserver.web.id";
+const API_URL = "http://localhost:3000"; // Replace with your actual API URL
 
 // Interface for meditation data
 export interface Meditation {

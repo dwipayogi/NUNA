@@ -33,7 +33,7 @@ export default function Login() {
       setError("");
 
       const response = await fetch(
-        "https://nuna.yogserver.web.id/api/auth/login",
+        "http://localhost:3000/api/auth/login",
         {
           method: "POST",
           headers: {

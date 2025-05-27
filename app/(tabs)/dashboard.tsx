@@ -13,7 +13,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Feather from "@expo/vector-icons/Feather";
 
+import { ProgressSection } from "./journal/components/sections";
 import { colors } from "@/constants/colors";
+import {
+  getActiveMood,
+  saveMood,
+  getMoodEmoji,
+  getMoodColor,
+} from "@/services/moodService";
+import { getCurrentUser, getGreeting } from "@/services/userService";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,57 +30,23 @@ export default function HomeScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   useEffect(() => {
-    const getGreeting = () => {
-      const hour = new Date().getHours();
-      if (hour < 12) return "Selamat Pagi!";
-      if (hour < 18) return "Selamat Siang!";
-      return "Selamat Malam!";
-    };
-
     setGreeting(getGreeting());
 
-    // Fetch username, token and active mood
-    const getUserData = async () => {
+    // Fetch username and active mood
+    const loadInitialData = async () => {
       try {
-        // Get user data from AsyncStorage
-        const userDataString = await AsyncStorage.getItem("user");
-        if (userDataString) {
-          const userData = JSON.parse(userDataString);
+        // Get user data
+        const userData = await getCurrentUser();
+        if (userData) {
           setUsername(userData.username || "");
         }
 
-        // Get token from storage
-        const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          console.error("No auth token found");
-          return;
-        }
-
-        // Fetch active mood from API
+        // Try to get active mood from API
         try {
-          const response = await fetch(
-            "https://nuna.yogserver.web.id/api/mood-history/active",
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const activeMood = await response.json();
-            if (activeMood && activeMood.mood) {
-              setSelectedMood(activeMood.mood);
-              await AsyncStorage.setItem("currentMood", activeMood.mood);
-            }
-          } else {
-            // If no active mood or error, try to get from local storage
-            const savedMood = await AsyncStorage.getItem("currentMood");
-            if (savedMood) {
-              setSelectedMood(savedMood);
-            }
+          const activeMood = await getActiveMood();
+          if (activeMood && activeMood.mood) {
+            setSelectedMood(activeMood.mood);
+            await AsyncStorage.setItem("currentMood", activeMood.mood);
           }
         } catch (apiError) {
           console.error("Error fetching active mood:", apiError);
@@ -84,40 +58,23 @@ export default function HomeScreen() {
           }
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error in initial data loading:", error);
       }
     };
 
-    getUserData();
+    loadInitialData();
   }, []);
 
-  const saveMood = async (mood: string) => {
+  const handleSaveMood = async (mood: string) => {
     try {
-      const previousMood = selectedMood;
       setSelectedMood(mood);
-      await AsyncStorage.setItem("currentMood", mood);
 
-      // Get token from storage
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        console.error("No auth token found");
-        return;
-      }
-
-      // Creating a new mood entry will automatically end any active mood entry
-      // according to the API documentation
-      await fetch("https://nuna.yogserver.web.id/api/mood-history", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          mood,
-        }),
-      });
+      // Save to backend and handle the response
+      await saveMood(mood);
     } catch (error) {
       console.error("Error saving mood:", error);
+      // Keep the UI updated even if API call fails
+      await AsyncStorage.setItem("currentMood", mood);
     }
   };
 
@@ -153,7 +110,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={index}
                   style={styles.moodItem}
-                  onPress={() => saveMood(mood)}
+                  onPress={() => handleSaveMood(mood)}
                 >
                   <View
                     style={[
@@ -188,6 +145,8 @@ export default function HomeScreen() {
             Ingat, tidak apa-apa merasakan apa pun yang sedang kamu rasakan."
           </Text>
         </View>
+
+        <ProgressSection />
 
         <View style={styles.quickActionsContainer}>
           <View style={styles.cardsContainer}>
@@ -251,41 +210,6 @@ export default function HomeScreen() {
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-// Helper functions
-function getMoodEmoji(mood: string) {
-  switch (mood) {
-    case "Hebat":
-      return "😄";
-    case "Baik":
-      return "🙂";
-    case "Oke":
-      return "😐";
-    case "Buruk":
-      return "😕";
-    case "Sangat Buruk":
-      return "😞";
-    default:
-      return "😐";
-  }
-}
-
-function getMoodColor(mood: string) {
-  switch (mood) {
-    case "Hebat":
-      return "#4ADE80";
-    case "Baik":
-      return "#93C5FD";
-    case "Oke":
-      return "#FACC15";
-    case "Buruk":
-      return "#FB923C";
-    case "Sangat Buruk":
-      return "#F87171";
-    default:
-      return "#CBD5E1";
-  }
 }
 
 const styles = StyleSheet.create({

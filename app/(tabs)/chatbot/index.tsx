@@ -2,27 +2,29 @@ import { useState, useEffect, useRef } from "react";
 import {
   View,
   StyleSheet,
+  Text,
   ScrollView,
   TouchableOpacity,
-  Text,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Markdown from "react-native-markdown-display";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-
 import { Feather } from "@expo/vector-icons";
 
 import { Input } from "@/components/input";
 import { colors } from "@/constants/colors";
 
 export default function Chatbot() {
+  const router = useRouter();
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState({ role: "user", message: "" });
   const [mode, setMode] = useState<"chat" | "voice">("chat");
   const scrollViewRef = useRef<ScrollView>(null);
+
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0) {
@@ -38,7 +40,7 @@ export default function Chatbot() {
     const token = await AsyncStorage.getItem("token");
 
     setMessages((prevMessages) => [...prevMessages, { role: "user", message }]);
-    const response = await fetch("https://nuna.yogserver.web.id/api/chat", {
+    const response = await fetch("http://localhost:3000/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -130,7 +132,27 @@ export default function Chatbot() {
                       : styles.botMessage,
                   ]}
                 >
-                  <Markdown>{message.message}</Markdown>
+                  {message.role === "user" ? (
+                    <Text style={{ color: colors.white }}>
+                      {message.message}
+                    </Text>
+                  ) : (
+                    <Markdown
+                      style={{
+                        body: { color: colors.black },
+                        link: { color: colors.primaryBlue },
+                        heading1: { color: colors.black, fontWeight: "bold" },
+                        heading2: { color: colors.black, fontWeight: "bold" },
+                        code_block: {
+                          backgroundColor: "#f0f0f0",
+                          padding: 5,
+                          borderRadius: 3,
+                        },
+                      }}
+                    >
+                      {message.message}
+                    </Markdown>
+                  )}
                 </View>
               ))}
             </ScrollView>
@@ -177,12 +199,15 @@ export default function Chatbot() {
               <View style={styles.voiceIconContainer}>
                 <Feather name="phone" size={60} color={colors.primaryBlue} />
               </View>
-              <Text style={styles.voiceTitle}>Panggilan Suara</Text>
+              <Text style={styles.voiceTitle}>Panggilan Suara</Text>{" "}
               <Text style={styles.voiceDescription}>
                 Fitur ini memungkinkan Anda berbicara langsung dengan asisten
                 virtual kami. Tekan tombol untuk memulai panggilan.
               </Text>
-              <TouchableOpacity style={styles.callButton}>
+              <TouchableOpacity
+                style={styles.callButton}
+                onPress={() => router.push("/")}
+              >
                 <Feather name="phone-call" size={28} color="white" />
                 <Text style={styles.callButtonText}>Mulai Panggilan</Text>
               </TouchableOpacity>{" "}
@@ -198,19 +223,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.backgroundBlue,
-    paddingHorizontal: 20,
   },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
     paddingVertical: 12,
   },
   headerTitle: {
@@ -236,7 +260,8 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   messageBubble: {
     borderRadius: 12,
@@ -261,9 +286,9 @@ const styles = StyleSheet.create({
   promptsContainer: {
     maxHeight: 60,
     marginBottom: 10,
+    paddingHorizontal: 16,
   },
   promptsContentContainer: {
-    paddingHorizontal: 5,
     paddingVertical: 10,
   },
   promptButton: {
@@ -288,6 +313,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 10,
     gap: 4,
   },
   button: {
