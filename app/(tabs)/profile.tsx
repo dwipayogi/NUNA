@@ -43,7 +43,7 @@ export default function ProfileScreen() {
         return;
       }
 
-      const response = await fetch("https://nuna.yogserver.web.id/api/auth/profile", {
+      const response = await fetch("http://localhost:3000/api/auth/profile", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
